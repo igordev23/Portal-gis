@@ -41,9 +41,7 @@ operationalLayersBtn.addEventListener('click', () => {
     }
 });
 
-// script.js ou onde você controla a lógica do botão de busca
 
-// script.js ou onde você controla a lógica do botão de busca
 
 const searchButton = document.getElementById('search-button');
 const searchInput = document.getElementById('search-input');

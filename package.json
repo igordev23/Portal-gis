@@ -1,0 +1,8 @@
+{
+  "devDependencies": {
+    "tailwindcss": "^3.4.11"
+  },
+  "dependencies": {
+    "@turf/turf": "^7.1.0"
+  }
+}

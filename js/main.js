@@ -58,6 +58,15 @@ searchButton.addEventListener('click', () => {
     }
 });
 
+document.getElementById('legend-btn').addEventListener('click', function () {
+  const legend = document.getElementById('legend');
+  // Alterna a visibilidade da legenda
+  if (legend.style.display === 'none' || legend.style.display === '') {
+      legend.style.display = 'block'; // Mostra a legenda
+  } else {
+      legend.style.display = 'none'; // Oculta a legenda
+  }
+});
 
 
 

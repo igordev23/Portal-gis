@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Web GIS Interface</title>
+  <title>Portal Geometria Gis</title>
   <link href="css/output.css" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <!-- Tailwind CSS -->
@@ -49,22 +49,30 @@
   </style>
 </head>
 <body class="bg-gray-100">
+  
+    
  
     <div id="map" class="w-full h-screen rounded-lg shadow-lg overflow-hidden">
-        <header class="header">
+      
+        <header style="width: auto;" class="header">
             <img src="./assets/337a3c_d996bcdd649b4551873452079dd5a583~mv2.png" alt="Logo" class="logo" /> <!-- Substitua "sua-logo.png" pelo caminho da sua logo -->
-            <h1 class="title">Portal GeoGIS</h1>
+            <h1 class="title">Portal Geometria GIS</h1>
             
             <div class="search-container">
-                <input type="text" placeholder="Search" class="search-input" />
-                <button class="search-button">
-                    <i class="fas fa-search"></i>
-                </button>
+              <input type="text" id="search-input" placeholder="Search" class="search-input" />
+              <button id="search-button" class="search-button">
+                  <i class="fas fa-search"></i>
+              </button>
+          </div>
+          
             </div>
         </header>
         
       </div>
-      
+      <div id="legend" style="border: 1px solid #ccc; padding: 10px; margin-top: 10px; display: none;">
+        <h4>Legenda</h4>
+        <div id="legend-content"></div>
+    </div>
       
       
   <!-- Botões ao redor do mapa -->
@@ -72,9 +80,11 @@
   <div id="map-provider-menu" class="map-provider-menu hidden"></div>
   <button id="operational-layers-btn" class="map-button"><i class="fas fa-layer-group"></i></button>
   <div id="selector">
-    <label>Escolha os GeoJSON:</label><br>
-    <input type="checkbox" id="vias" value="vias.geojson" checked>
-    <label for="vias">Vias</label><br>
+    <label>Camadas</label><br>
+   
+
+    <input type="checkbox" id="static-image" value="static-image">
+    <label for="static-image">Raster</label><br>
     <input type="checkbox" id="areas" value="AREAS_URBANIZADAS.geojson">
     <label for="areas">AREAS URBANIZADAS</label><br>
     <input type="checkbox" id="limites" value="LIMITES_MUNICIPAIS.geojson">
@@ -87,6 +97,8 @@
     <label for="pontos">PONTOS DE INTERESSE</label><br>
     <input type="checkbox" id="cobertura" value="COBERTURA_DO_SOLO.geojson">
     <label for="cobertura">COBERTURA DO SOLO</label><br>
+    <input type="checkbox" id="vias" value="vias.geojson" checked>
+    <label for="vias">Vias</label><br>
 </div>
   <button id="symbol-customization-btn" class="map-button"><i class="fas fa-paint-brush"></i></button>
   <button id="filter-layers-btn" class="map-button"><i class="fas fa-filter"></i></button>
@@ -111,7 +123,7 @@
     border-radius: 8px; /* Bordas mais arredondadas */
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Sombra mais suave */
     color: white; /* Texto branco */
-    font-size: 8px; /* Tamanho da fonte reduzido */
+    font-size: 10px; /* Tamanho da fonte reduzido */
     z-index: 1000;
     display: flex; 
     align-items: center;
@@ -119,6 +131,7 @@
     <span>Coordenadas:</span> 
     <span id="coords" style="margin-left: 5px; font-weight: bold;">0, 0</span>
 </div>
+
 
 
   <script type="module" src="./js/main.js"></script>

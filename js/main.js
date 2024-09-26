@@ -69,6 +69,79 @@ document.getElementById('legend-btn').addEventListener('click', function () {
 });
 
 
+// Seleciona o botão "Mapas base" e o menu
+const baseMapBtn = document.getElementById('base-map-btn');
+const mapProviderMenu = document.getElementById('map-provider-menu');
+const closeBtn = document.getElementById('map-provider-close-btn');
+
+
+// Seleciona os elementos do DOM
+
+const selector = document.getElementById('selector');
+const  camadasbnt = document.getElementById('camadas-close-btn')
+
+// Função para mostrar/ocultar o menu de camadas
+operationalLayersBtn.addEventListener('click', () => {
+  if (selector.classList.contains('hidden')) {
+    selector.classList.remove('hidden');
+    selector.classList.add('show');
+  } else {
+    selector.classList.add('hidden');
+    selector.classList.remove('show');
+  }
+});
+
+
+// Função para mostrar/ocultar o menu de camadas
+camadasbnt.addEventListener('click', () => {
+  if (selector.classList.contains('hidden')) {
+    selector.classList.remove('hidden');
+    selector.classList.add('show');
+  } else {
+    selector.classList.add('hidden');
+    selector.classList.remove('show');
+  }
+});
+
+
+
+
+// Mostrar/ocultar o menu ao clicar no botão "Mapas base"
+baseMapBtn.addEventListener('click', () => {
+
+  if (mapProviderMenu.classList.contains('hidden')) {
+    mapProviderMenu.classList.remove('hidden');
+    mapProviderMenu.style.display = 'block'; // Mostra o menu
+  } else {
+    mapProviderMenu.classList.add('hidden');
+    mapProviderMenu.style.display = 'none'; // Esconde o menu
+  }
+});
+
+// Mostrar/ocultar o menu ao clicar no botão "Mapas base"
+mapProviderMenu.addEventListener('click', () => {
+  
+  if (mapProviderMenu.classList.contains('hidden')) {
+    mapProviderMenu.classList.remove('hidden');
+    mapProviderMenu.style.display = 'block'; // Mostra o menu
+  } else {
+    mapProviderMenu.classList.add('hidden');
+    mapProviderMenu.style.display = 'none'; // Esconde o menu
+  }
+});
+
+
+
+// Fecha a legenda ao clicar no botão de fechar
+document.getElementById('legend-close-btn').addEventListener('click', () => {
+  document.getElementById('legend').style.display = 'none';
+});
+
+// Exibe a legenda novamente (isso pode ser colocado no botão que você usa para ativar a legenda)
+function showLegend() {
+  document.getElementById('legend').style.display = 'block';
+}
+
 
 
 

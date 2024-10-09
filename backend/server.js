@@ -25,18 +25,20 @@ app.get('/api/dados', async (req, res) => {
       const dadosGeoJSON = [];
   
       for (const tabela of tabelas.rows) {
-        console.log(`Buscando dados da tabela: ${tabela.table_name}`); // Log da tabela
+        const nomeTabela = tabela.table_name;
+  
+        console.log(`Buscando dados da tabela: ${nomeTabela}`); // Log da tabela
         // Consultar a tabela e verificar se tem uma coluna geométrica
         const colunaGeometria = await client.query(`
           SELECT column_name 
           FROM information_schema.columns 
-          WHERE table_name = '${tabela.table_name}' AND column_name IN ('geom', 'geometry', 'geometria');
+          WHERE table_name = '${nomeTabela}' AND column_name IN ('geom', 'geometry', 'geometria');
         `);
   
         if (colunaGeometria.rows.length > 0) {
-          const data = await client.query(`SELECT * FROM ${tabela.table_name};`);
+          const data = await client.query(`SELECT * FROM "${nomeTabela}";`); // Usar aspas para o nome da tabela
           dadosGeoJSON.push({
-            nome: tabela.table_name,
+            nome: nomeTabela,
             dados: data.rows,
           });
         }
@@ -48,6 +50,7 @@ app.get('/api/dados', async (req, res) => {
       res.status(500).send('Erro ao buscar dados.');
     }
   });
+  
   
 
 // Inicializa o servidor e conecta ao PostgreSQL

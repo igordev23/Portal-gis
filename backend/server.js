@@ -18,26 +18,37 @@ const client = new Client({
 });
 
 // Rota para buscar dados das tabelas e retornar em formato JSON
+// Rota para buscar dados das tabelas e retornar apenas aquelas que podem ser convertidas em GeoJSON
 app.get('/api/dados', async (req, res) => {
-  try {
-    const tabelas = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';");
-    const dadosJSON = [];
-
-    // Loop para pegar dados de cada tabela
-    for (const tabela of tabelas.rows) {
-      const data = await client.query(`SELECT * FROM ${tabela.table_name};`);
-      dadosJSON.push({
-        nome: tabela.table_name,
-        dados: data.rows,
-      });
+    try {
+      const tabelas = await client.query("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';");
+      const dadosGeoJSON = [];
+  
+      for (const tabela of tabelas.rows) {
+        console.log(`Buscando dados da tabela: ${tabela.table_name}`); // Log da tabela
+        // Consultar a tabela e verificar se tem uma coluna geométrica
+        const colunaGeometria = await client.query(`
+          SELECT column_name 
+          FROM information_schema.columns 
+          WHERE table_name = '${tabela.table_name}' AND column_name IN ('geom', 'geometry', 'geometria');
+        `);
+  
+        if (colunaGeometria.rows.length > 0) {
+          const data = await client.query(`SELECT * FROM ${tabela.table_name};`);
+          dadosGeoJSON.push({
+            nome: tabela.table_name,
+            dados: data.rows,
+          });
+        }
+      }
+  
+      res.json(dadosGeoJSON);
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error);
+      res.status(500).send('Erro ao buscar dados.');
     }
-
-    res.json(dadosJSON); // Retorna todas as tabelas com seus dados
-  } catch (error) {
-    console.error('Erro ao buscar dados:', error);
-    res.status(500).send('Erro ao buscar dados.');
-  }
-});
+  });
+  
 
 // Inicializa o servidor e conecta ao PostgreSQL
 app.listen(port, () => {

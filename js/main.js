@@ -92,16 +92,6 @@ operationalLayersBtn.addEventListener('click', () => {
 });
 
 
-// Função para mostrar/ocultar o menu de camadas
-camadasbnt.addEventListener('click', () => {
-  if (selector.classList.contains('hidden')) {
-    selector.classList.remove('hidden');
-    selector.classList.add('show');
-  } else {
-    selector.classList.add('hidden');
-    selector.classList.remove('show');
-  }
-});
 
 
 

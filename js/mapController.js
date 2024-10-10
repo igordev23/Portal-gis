@@ -1,23 +1,18 @@
 import { MeasurementController } from './MeasurementController.js';
 import { GeoJSONController } from './GeoJSONController.js';
+import { DataFetcher } from './DataFetcher.js';  // Importando a nova classe
 
 export class MapController {
     constructor(mapElementId) {
-       
-         // Define as camadas de mapas base
-         this.osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // Define as camadas de mapas base
+        this.osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         });
 
-       
-       
-        // Inicializa o mapa sem nenhuma camada carregada inicialmente
-        this.map = L.map(mapElementId, { center: [-2.99241, -45.40649], zoom: 10, layers: [] });
-          // Adiciona a camada OSM ao mapa
-          this.osm.addTo(this.map); // Adicione esta linha
+        // Inicializa o mapa com a camada OSM
+        this.map = L.map(mapElementId, { center: [-2.99241, -45.40649], zoom: 10, layers: [this.osm] });
         this.currentBaseLayer = this.osm;
 
-      
         this.satellite = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenTopoMap contributors'
         });
@@ -38,42 +33,33 @@ export class MapController {
             attribution: '&copy; <a href="https://carto.com/">CartoDB</a> contributors'
         });
 
-       // Coordenadas ajustadas da imagem em EPSG:4326 (latitude/longitude)
-// Coordenadas ajustadas da imagem em EPSG:4326 (latitude/longitude)
-const imageBounds = [[-2.9925081769999986, -45.3691209124003265], [-2.9544096540000000, -45.3142947085996823]];
+        // Inicializar o MeasurementController para adicionar funcionalidade de medição
+        this.measurementController = new MeasurementController(this.map);
 
-
-
-        // Adicionando a camada de imagem estática
+        // Coordenadas ajustadas da imagem em EPSG:4326 (latitude/longitude)
+        const imageBounds = [[-2.992508, -45.369120], [-2.954409, -45.314294]];
         this.staticImageLayer = L.imageOverlay('raster_jpeg.jpeg', imageBounds, {
             opacity: 0.8,
             attribution: '© Raster Image'
         });
 
-        // Inicializar o MeasurementController para adicionar funcionalidade de medição
-        this.measurementController = new MeasurementController(this.map);
-
-        // Atualiza o elemento de coordenadas com a posição do mouse
-        this.setupMouseCoordinates();
-
         // Inicializar os controladores adicionais
         this.geoJSONController = new GeoJSONController(this.map, this.staticImageLayer);
-
-        // Configurar listeners de checkboxes para GeoJSON e imagem raster
         this.geoJSONController.setupCheckboxListeners();
-        this.geoJSONController.updateLayers(); // Carregar camadas GeoJSON iniciais
+        this.geoJSONController.updateLayers();
 
-        // Inicializar o array para armazenar os marcadores ou características que você deseja buscar
-        this.features = []; // Array para armazenar as características do mapa
+        // Inicializar o array para armazenar as características do mapa
+        this.features = [];
+
+        // Configurar coordenadas do mouse
+        this.setupMouseCoordinates();
+
+        // Inicializar o DataFetcher e chamar a função buscarDados
+        this.dataFetcher = new DataFetcher(this.map, this.geoJSONController);
+        this.dataFetcher.buscarDados();  // Chamando a função de busca de dados
     }
 
-    // Função para adicionar marcadores ao mapa (para exemplo)
-    addFeature(name, coordinates) {
-        const marker = L.marker(coordinates).addTo(this.map).bindPopup(name);
-        this.features.push({ name, coordinates, marker }); // Adiciona a feature ao array
-    }
-
-    // Função para buscar no mapa
+    // Função para buscar no mapa (continua a mesma)
     searchInMap(query) {
         const lowerCaseQuery = query.toLowerCase();
         const results = this.features.filter(feature =>
@@ -97,41 +83,41 @@ const imageBounds = [[-2.9925081769999986, -45.3691209124003265], [-2.9544096540
         }
     }
 
-   // Troca a camada base do mapa com base no provedor selecionado
-   switchBaseLayer(provider) {
-    if (this.currentBaseLayer) {
-        this.map.removeLayer(this.currentBaseLayer);
+    // Função para alternar a camada base do mapa (continua a mesma)
+    switchBaseLayer(provider) {
+        if (this.currentBaseLayer) {
+            this.map.removeLayer(this.currentBaseLayer);
+        }
+
+        switch (provider) {
+            case 'osm':
+                this.currentBaseLayer = this.osm;
+                break;
+            case 'satellite':
+                this.currentBaseLayer = this.satellite;
+                break;
+            case 'cartodb':
+                this.currentBaseLayer = this.cartoDB_Positron;
+                break;
+            case 'stamen-watercolor':
+                this.currentBaseLayer = this.stamenWatercolor;
+                break;
+            case 'esri-world-imagery':
+                this.currentBaseLayer = this.esriWorldImagery;
+                break;
+            case 'cartodb-dark-matter':
+                this.currentBaseLayer = this.cartoDB_DarkMatter;
+                break;
+            default:
+                this.currentBaseLayer = this.osm;
+        }
+
+        if (this.currentBaseLayer) {
+            this.currentBaseLayer.addTo(this.map);
+        }
     }
 
-    switch (provider) {
-        case 'osm':
-            this.currentBaseLayer = this.osm;
-            break;
-        case 'satellite':
-            this.currentBaseLayer = this.satellite;
-            break;
-        case 'cartodb':
-            this.currentBaseLayer = this.cartoDB_Positron;
-            break;
-        case 'stamen-watercolor':
-            this.currentBaseLayer = this.stamenWatercolor;
-            break;
-        case 'esri-world-imagery':
-            this.currentBaseLayer = this.esriWorldImagery;
-            break;
-        case 'cartodb-dark-matter':
-            this.currentBaseLayer = this.cartoDB_DarkMatter;
-            break;
-        default:
-            this.currentBaseLayer = this.osm;
-    }
-
-    if (this.currentBaseLayer) {
-        this.currentBaseLayer.addTo(this.map);
-    }
-}
-
-    // Função para adicionar as coordenadas do mouse no mapa
+    // Função para exibir coordenadas do mouse no mapa (continua a mesma)
     setupMouseCoordinates() {
         this.map.on('mousemove', (e) => {
             const latLng = e.latlng;

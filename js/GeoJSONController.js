@@ -5,6 +5,14 @@ export class GeoJSONController {
         this.colors = {}; // Armazena as cores fixas para cada GeoJSON
         this.staticImageLayer = staticImageLayer; // Camada da imagem estática
         this.legendContent = document.getElementById('legend-content'); // Referência ao conteúdo da legenda
+        this.selectorContainer = document.getElementById('selector'); // Container do seletor de camadas
+
+        if (!this.selectorContainer) {
+            console.error('Container de seleção de camadas não encontrado!');
+        }
+        if (!this.legendContent) {
+            console.error('Elemento de legenda não encontrado!');
+        }
     }
 
     // Gera uma cor hexadecimal aleatória
@@ -17,183 +25,174 @@ export class GeoJSONController {
         return color;
     }
 
-    loadGeoJSON(url) {
-        // Verifica se a camada já foi carregada
-        if (this.layers[url]) {
-            // Se já estiver carregada, apenas adiciona ao mapa
-            this.layers[url].layer.addTo(this.map);
-            this.updateLegend(); // Atualiza a legenda ao exibir a camada novamente
-            return; // Sai da função para não carregar novamente
-        }
+    // Atualiza o mapa com os dados recebidos do DataFetcher e checkboxes dinâmicos
+    updateWithFetchedData(dados) {
+        // Atualiza os checkboxes com as camadas encontradas no servidor
+        this.updateLayerSelection(dados);
 
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                // Gera ou reutiliza a cor para esta camada
-                const layerColor = this.colors[url] || this.getRandomColor();
-                this.colors[url] = layerColor; // Armazena a cor para garantir que seja reutilizada
+        // Carrega os dados GeoJSON mas não adiciona ao mapa ainda
+        dados.forEach(tabela => {
+            const layerGroup = L.layerGroup(); // Cria um grupo de camadas para cada tabela
 
-                const layer = L.geoJson(data, {
-                    style: {
-                        color: layerColor, // Usa a cor gerada ou armazenada
-                        weight: 2,
-                        fillOpacity: 0.5 // Define a opacidade do preenchimento
-                    },
-                    pointToLayer: (feature, latlng) => {
-                        // Define o estilo do marcador
-                        return L.circleMarker(latlng, {
-                            radius: 8,
-                            fillColor: layerColor, // Cor do marcador
-                            color: layerColor, // Cor da borda do marcador
+            // Armazenar o tipo de geometria para a legenda
+            const geometryType = tabela.dados[0]?.geom?.type || 'Desconhecido'; // Defina um tipo padrão se não houver dados
+
+            tabela.dados.forEach(item => {
+                if (item.geom) {
+                    const layerColor = this.colors[tabela.nome] || this.getRandomColor();
+                    this.colors[tabela.nome] = layerColor;
+
+                    // Se for um Point, utilizamos circleMarker para criar um marcador estilizado
+                    const geoJsonLayer = L.geoJSON(item.geom, {
+                        pointToLayer: (feature, latlng) => {
+                            return L.circleMarker(latlng, {
+                                radius: 4, // Tamanho do círculo
+                                fillColor: layerColor,
+                                color: "#000", // Borda do círculo
+                                weight: 1,
+                                opacity: 1,
+                                fillOpacity: 0.8
+                            });
+                        },
+                        style: {
+                            color: layerColor,
                             weight: 2,
-                            opacity: 1,
-                            fillOpacity: 0.8
-                        });
-                    },
-                    onEachFeature: (feature, layer) => {
-                        let popupContent = "<b>Atributos:</b><br>";
-                        for (let key in feature.properties) {
-                            popupContent += `${key}: ${feature.properties[key]}<br>`;
+                            fillOpacity: 0.5
                         }
-                        layer.bindPopup(popupContent);
-                    }
-                });
+                    });
 
-                // Adiciona a camada ao mapa e ao objeto de camadas
-                this.layers[url] = { layer, color: layerColor, features: data.features }; // Armazena a camada com sua cor única e dados dos recursos
-                layer.addTo(this.map); // Adiciona a camada ao mapa
+                    // Extrair e exibir apenas fclass e name no popup
+                    const fclass = item.fclass || 'N/A';
+                    const name = item.name || 'N/A';
+                    geoJsonLayer.bindPopup(`<strong>${tabela.nome}</strong><br>Classe: ${fclass}<br>Nome: ${name}`);
 
-                this.updateLegend(); // Atualiza a legenda após carregar a nova camada
-            })
-            .catch(error => console.error(`Erro ao carregar GeoJSON ${url}: `, error));
-    }
-
-    // Função auxiliar para remover a extensão .geojson
-    removeGeoJSONExtension(url) {
-        return url.replace(/\.geojson$/, ''); // Remove a extensão .geojson
-    }
-
-    // Retorna o tipo de geometria de uma feature (Point, LineString, Polygon, etc.)
-    getGeometryType(feature) {
-        return feature.geometry.type;
-    }
-
-    // Gera o símbolo adequado para a legenda com base no tipo de geometria
-    getLegendIcon(geometryType, color) {
-        const size = 15; // Tamanho do ícone na legenda
-        let icon = '';
-        switch (geometryType) {
-            case 'Point':
-                icon = `<span style="display:inline-block;width:${size}px;height:${size}px;border-radius:50%;background-color:${color};margin-right:5px;"></span>`;
-                break;
-            case 'LineString':
-                icon = `<span style="display:inline-block;width:${size * 2}px;height:2px;background-color:${color};margin-right:5px;"></span>`;
-                break;
-            case 'Polygon':
-                icon = `<span style="display:inline-block;width:${size}px;height:${size}px;background-color:${color};border:1px solid ${color};margin-right:5px;"></span>`;
-                break;
-            default:
-                icon = `<span style="display:inline-block;width:${size}px;height:${size}px;background-color:${color};margin-right:5px;"></span>`;
-                break;
-        }
-        return icon;
-    }
-
-    updateLegend() {
-        this.legendContent.innerHTML = ''; // Limpa a legenda existente
-    
-        // Cria uma entrada na legenda para cada camada carregada
-        Object.entries(this.layers).forEach(([url, { color, layer }]) => {
-            const legendItem = document.createElement('div');
-            const displayName = this.removeGeoJSONExtension(url); // Remove a extensão .geojson do nome da camada
-    
-            // Verifica o tipo de geometria da camada (ponto, linha, polígono ou quadrado)
-            let shapeIcon = '';
-            layer.eachLayer(geoLayer => {
-                if (geoLayer.feature && geoLayer.feature.geometry) {
-                    const geomType = geoLayer.feature.geometry.type;
-    
-                    // Define o ícone apropriado para o tipo de geometria
-                    if (geomType === 'Point' || geomType === 'MultiPoint') {
-                        // Ícone para pontos (círculo)
-                        shapeIcon = `<span style="display:inline-block;width:15px;height:15px;border-radius:50%;background-color:${color};margin-right:5px;"></span>`;
-                    } else if (geomType === 'LineString' || geomType === 'MultiLineString') {
-                        // Ícone para linhas (linha horizontal)
-                        shapeIcon = `<span style="display:inline-block;width:20px;height:2px;background-color:${color};margin-right:5px;"></span>`;
-                    } else if (geomType === 'Polygon' || geomType === 'MultiPolygon') {
-                        // Verifica se o polígono é um quadrado ou retângulo
-                        const coordinates = geoLayer.feature.geometry.coordinates[0]; // Coordenadas dos vértices
-                        const isRectangle = this.isRectangle(coordinates);
-    
-                        if (isRectangle) {
-                            // Se for um quadrado ou retângulo, usa um ícone quadrado
-                            shapeIcon = `<span style="display:inline-block;width:15px;height:15px;background-color:${color};border: 2px solid ${color};margin-right:5px;"></span>`;
-                        } else {
-                            // Para outros polígonos (ícone de polígono mais genérico, por exemplo, triângulo)
-                            shapeIcon = `<span style="display:inline-block;width:0;height:0;border-left:7.5px solid transparent;border-right:7.5px solid transparent;border-bottom:15px solid ${color};margin-right:5px;"></span>`;
-                        }
-                    }
+                    layerGroup.addLayer(geoJsonLayer); // Adiciona cada geometria ao grupo de camadas
                 }
             });
-    
+
+            // Armazena o grupo de camadas, incluindo o tipo de geometria
+            this.layers[tabela.nome] = { layerGroup, geometryType }; // Armazena o grupo de camadas e o tipo de geometria
+        });
+    }
+
+    // Atualiza os checkboxes no HTML com base nas camadas recebidas
+    updateLayerSelection(dados) {
+        // Limpa os checkboxes existentes
+        this.selectorContainer.innerHTML = `
+          <div id="camadas-header">
+            <span>Camadas</span>
+            
+          </div>
+          <input type="checkbox" id="static-image" value="static-image">
+          <label for="static-image">Raster</label><br>
+        `;
+
+        // Adiciona as novas camadas dinâmicas baseadas no servidor
+        dados.forEach(tabela => {
+            const checkboxId = `layer-${tabela.nome}`;
+            const checkboxHtml = `
+              <input type="checkbox" id="${checkboxId}" value="${tabela.nome}">
+              <label for="${checkboxId}">${tabela.nome}</label><br>
+            `;
+            this.selectorContainer.insertAdjacentHTML('beforeend', checkboxHtml);
+        });
+
+        // Adiciona eventos de mudança nos checkboxes
+        this.setupCheckboxListeners();
+    }
+
+    // Atualiza a legenda com base nas camadas atuais
+    updateLegend() {
+        this.legendContent.innerHTML = ''; // Limpa a legenda existente
+
+        // Cria uma entrada na legenda para cada camada carregada
+        Object.keys(this.layers).forEach(layerName => {
+            const color = this.colors[layerName];
+            const geometryType = this.layers[layerName].geometryType; // Acessar o tipo de geometria armazenado
+
+            const legendItem = document.createElement('div');
+            let shapeIcon = '';
+
+            // Define o ícone apropriado com base no tipo de geometria
+            if (geometryType === 'Point' || geometryType === 'MultiPoint') {
+                // Ícone para pontos (círculo)
+                shapeIcon = `<span style="display:inline-block;width:15px;height:15px;border-radius:50%;background-color:${color};margin-right:5px;"></span>`;
+            } else if (geometryType === 'LineString' || geometryType === 'MultiLineString') {
+                // Ícone para linhas (linha horizontal)
+                shapeIcon = `<span style="display:inline-block;width:20px;height:2px;background-color:${color};margin-right:5px;"></span>`;
+            } else if (geometryType === 'Polygon' || geometryType === 'MultiPolygon') {
+                // Ícone para polígonos (usar um quadrado ou retângulo)
+                shapeIcon = `<span style="display:inline-block;width:15px;height:15px;background-color:${color};border: 2px solid ${color};margin-right:5px;"></span>`;
+            }
+
             // Adiciona o ícone correspondente e o nome da camada à legenda
-            legendItem.innerHTML = `${shapeIcon} ${displayName}`;
+            legendItem.innerHTML = `${shapeIcon} ${layerName}`; // Exibe o ícone e o nome da camada
             this.legendContent.appendChild(legendItem);
         });
     }
-    
-    // Função auxiliar para verificar se um polígono é um retângulo/quadrado
-    isRectangle(coordinates) {
-        if (coordinates.length !== 5) return false; // Um retângulo/quadrado tem 4 vértices + 1 para fechar
-    
-        const [p1, p2, p3, p4] = coordinates;
-    
-        const isOrthogonal = (a, b, c) => {
-            const dotProduct = (b[0] - a[0]) * (c[0] - b[0]) + (b[1] - a[1]) * (c[1] - b[1]);
-            return dotProduct === 0; // Produto escalar = 0 significa ângulos de 90 graus
-        };
-    
-        // Verifica se todos os ângulos são de 90 graus (ortogonais)
-        return isOrthogonal(p1, p2, p3) && isOrthogonal(p2, p3, p4) && isOrthogonal(p3, p4, coordinates[0]);
-    }
-    
 
     // Remove todas as camadas do mapa
     removeAllLayers() {
-        Object.values(this.layers).forEach(({ layer }) => {
-            this.map.removeLayer(layer);
+        Object.keys(this.layers).forEach(layerName => {
+            const layer = this.layers[layerName].layerGroup; // Acessar o grupo de camadas
+            if (layer) {
+                this.map.removeLayer(layer);
+            }
         });
         this.map.removeLayer(this.staticImageLayer); // Remove também a camada de imagem estática
         this.legendContent.innerHTML = ''; // Limpa a legenda
+        this.layers = {}; // Limpa as camadas armazenadas
     }
 
+    // Atualiza as camadas no mapa com base nos checkboxes
     updateLayers() {
-        // Remove todas as camadas antes de atualizar
-        Object.values(this.layers).forEach(({ layer }) => {
-            this.map.removeLayer(layer); // Remove a camada do mapa
-        });
-    
-        // Limpa as camadas armazenadas, exceto a camada de imagem estática
-        this.layers = {};
-        this.legendContent.innerHTML = ''; // Limpa a legenda
-    
-        const staticImageChecked = document.querySelector('#selector input[type="checkbox"][value="static-image"]').checked;
-    
-        // Adiciona ou remove a camada de imagem estática com base no estado do checkbox
-        if (staticImageChecked) {
-            this.staticImageLayer.addTo(this.map); // Adiciona a camada de imagem estática
-        } else {
-            this.map.removeLayer(this.staticImageLayer); // Remove a camada de imagem estática se não estiver selecionada
+        const staticImageCheckbox = document.querySelector('#selector input[type="checkbox"][value="static-image"]');
+        
+        if (!staticImageCheckbox) {
+            console.error('Checkbox de imagem estática não encontrado!');
+            return;
         }
-    
+
+        const staticImageChecked = staticImageCheckbox.checked;
+
+        // Gerencia a camada de imagem estática
+        if (staticImageChecked) {
+            if (!this.map.hasLayer(this.staticImageLayer)) {
+                this.staticImageLayer.addTo(this.map); // Adiciona se não estiver no mapa
+            }
+        } else {
+            if (this.map.hasLayer(this.staticImageLayer)) {
+                this.map.removeLayer(this.staticImageLayer); // Remove se estiver no mapa
+            }
+        }
+
+        // Remove todas as camadas GeoJSON antes de atualizar
+        Object.keys(this.layers).forEach(layerName => {
+            const layer = this.layers[layerName].layerGroup; // Acessar o grupo de camadas
+            if (layer && this.map.hasLayer(layer)) {
+                this.map.removeLayer(layer); // Remove a camada do mapa
+            }
+        });
+
         // Carrega as camadas GeoJSON com base nos checkboxes selecionados
         document.querySelectorAll('#selector input[type="checkbox"]:not([value="static-image"]):checked').forEach(checkbox => {
             const layerValue = checkbox.value;
-            this.loadGeoJSON(layerValue); // Carrega a camada GeoJSON
+            this.loadGeoJSON(layerValue); // Carrega a camada GeoJSON no mapa
         });
+
+        this.updateLegend();
     }
 
-    // Adiciona eventos de mudança nas checkboxes
+    // Adiciona uma camada GeoJSON ao mapa (somente se o checkbox estiver marcado)
+    loadGeoJSON(layerName) {
+        const layer = this.layers[layerName].layerGroup; // Acessar o grupo de camadas
+        if (layer && !this.map.hasLayer(layer)) {
+            layer.addTo(this.map); // Adiciona ao mapa se o checkbox estiver marcado
+        }
+        this.updateLegend(); // Atualiza a legenda
+    }
+
+    // Adiciona eventos de mudança nos checkboxes
     setupCheckboxListeners() {
         document.querySelectorAll('#selector input[type="checkbox"]').forEach(checkbox => {
             checkbox.addEventListener('change', () => this.updateLayers());

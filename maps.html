@@ -1,62 +1,88 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebGIS with PostGIS</title>
-    <!-- Leaflet CSS -->
+    <title>Exibição de Dados</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
-    <!-- Custom CSS -->
     <style>
-        #map {
-            height: 600px;
+        /* Adicionando um estilo básico para a tabela */
+        table {
             width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
-        body {
-            font-family: Arial, sans-serif;
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
         }
-        h1 {
-            text-align: center;
-            margin: 20px;
+        th {
+            background-color: #f2f2f2;
+        }
+        /* Estilo do mapa */
+        #map {
+            height: 400px; /* Altura do mapa */
+            margin-top: 20px;
         }
     </style>
 </head>
-<body>
+<body class="bg-gray-100 p-6">
+   
+    <div id="map" class="mt-4"></div> <!-- Mapa Leaflet -->
 
-    <h1>Simple WebGIS with PostGIS Data</h1>
-    <!-- Mapa Leaflet -->
-    <div id="map"></div>
-
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-
-    <!-- Custom JS -->
     <script>
-        // Inicializa o mapa
-        var map = L.map('map').setView([-23.5505, -46.6333], 12); // Coordenadas de São Paulo como exemplo
+        // Inicializar o mapa
+        const mapa = L.map('map').setView([-23.5505, -46.6333], 13); // Ajuste a posição inicial e o zoom do mapa
 
-        // Adiciona a camada de fundo (OpenStreetMap)
+        // Adicionar uma camada de tile ao mapa
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(mapa);
 
-        // Função para carregar GeoJSON a partir do servidor
-        async function loadGeoJSON() {
+        // Função para buscar dados da API e exibi-los na tabela e no mapa
+        async function buscarDados() {
             try {
-                // Fetch GeoJSON from your API endpoint
-                let response = await fetch('http://localhost:3000/api/geojson');
-                let geojsonData = await response.json();
+                const resposta = await fetch('https://portal-gis-back.onrender.com/api/dados');
+                const dados = await resposta.json();
 
-                // Adiciona os dados GeoJSON ao mapa
-                L.geoJSON(geojsonData).addTo(map);
-            } catch (error) {
-                console.error('Erro ao carregar GeoJSON:', error);
+                // Montar a tabela
+                let tabelaHtml = '<table><thead><tr><th>Nome da Tabela</th><th>Dados</th></tr></thead><tbody>';
+                
+                dados.forEach(tabela => {
+                    tabelaHtml += `<tr><td>${tabela.nome}</td><td>${JSON.stringify(tabela.dados)}</td></tr>`;
+
+                    // Adicionar geometrias no mapa
+                    tabela.dados.forEach(item => {
+                        if (item.geom) {
+                            // Adicionar o polígono ao mapa, assumindo que a geometria é do tipo Polygon ou MultiPolygon
+                            const geoJsonLayer = L.geoJSON(item.geom, {
+                                style: {
+                                    color: 'blue', // Cor do polígono
+                                    weight: 2, // Largura da linha
+                                    fillOpacity: 0.5 // Opacidade do preenchimento
+                                }
+                            }).addTo(mapa);
+
+                            // Adicionar um popup para o polígono
+                            geoJsonLayer.bindPopup(`<strong>${tabela.nome}</strong><br>${JSON.stringify(item)}`);
+                        }
+                    });
+                });
+
+                tabelaHtml += '</tbody></table>';
+                document.getElementById('tabela-container').innerHTML = tabelaHtml;
+            } catch (erro) {
+                console.error('Erro ao buscar dados:', erro);
+                document.getElementById('tabela-container').innerHTML = '<p class="text-red-500">Erro ao buscar dados.</p>';
             }
         }
 
-        // Chama a função para carregar o GeoJSON
-        loadGeoJSON();
+        // Chamar a função ao carregar a página
+        document.addEventListener('DOMContentLoaded', buscarDados);
     </script>
-
 </body>
 </html>

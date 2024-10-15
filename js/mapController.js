@@ -1,6 +1,6 @@
 import { MeasurementController } from './MeasurementController.js';
 import { GeoJSONController } from './GeoJSONController.js';
-import { DataFetcher } from './DataFetcher.js';  // Importando a nova classe
+import { DataFetcher } from './DataFetcher.js'; // Importando a nova classe
 
 export class MapController {
     constructor(mapElementId) {
@@ -56,53 +56,92 @@ export class MapController {
 
         // Inicializar o DataFetcher e chamar a função buscarDados
         this.dataFetcher = new DataFetcher(this.map, this.geoJSONController);
-        this.dataFetcher.buscarDados();  // Chamando a função de busca de dados
+        this.dataFetcher.buscarDados(); // Chamando a função de busca de dados
+
+        // Configurar o evento de input para busca de lugares
+        this.setupSearchEvent();
     }
 
-   // Função para buscar lugares reais no mapa usando Nominatim
-searchInMap(query) {
-    const lowerCaseQuery = query.toLowerCase();
-
-    // URL da API Nominatim para geocodificação (pesquisa de locais)
-    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
-
-    // Fazendo uma requisição fetch para buscar o local real
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (data.length === 0) {
-                alert('Nenhum lugar encontrado.');
-                return;
+    // Função para configurar o evento de busca
+    setupSearchEvent() {
+        document.getElementById('search-input').addEventListener('input', (event) => {
+            const query = event.target.value;
+            if (query.length > 2) { // Começar a busca após 2 caracteres
+                this.searchInMap(query);
+            } else {
+                document.getElementById('suggestions-list').style.display = 'none'; // Ocultar lista se menos de 2 caracteres
             }
-
-            // Limpar marcadores de buscas anteriores
-            this.map.eachLayer(layer => {
-                if (layer instanceof L.Marker && layer.options.searchRelated) {
-                    this.map.removeLayer(layer);
-                }
-            });
-
-            // Iterar sobre os resultados e adicionar marcadores ao mapa
-            data.forEach(place => {
-                const lat = place.lat;
-                const lon = place.lon;
-                const name = place.display_name;
-
-                // Adicionar um marcador para cada lugar encontrado
-                const marker = L.marker([lat, lon], { searchRelated: true })
-                    .addTo(this.map)
-                    .bindPopup(name)
-                    .openPopup();
-
-                // Centralizar o mapa no primeiro resultado
-                this.map.setView([lat, lon], 12);
-            });
-        })
-        .catch(error => {
-            console.error('Erro ao buscar o local:', error);
-            alert('Erro ao buscar o local.');
         });
-}
+
+        // Evento para ocultar a lista de sugestões ao clicar fora
+        document.addEventListener('click', (event) => {
+            const suggestionsList = document.getElementById('suggestions-list');
+            if (!suggestionsList.contains(event.target) && event.target.id !== 'search-input') {
+                suggestionsList.style.display = 'none'; // Ocultar lista se clicar fora
+            }
+        });
+    }
+
+    // Função para buscar lugares reais no mapa usando Nominatim
+    searchInMap(query) {
+        const lowerCaseQuery = query.toLowerCase();
+        const suggestionsList = document.getElementById('suggestions-list');
+        suggestionsList.innerHTML = ''; // Limpar sugestões anteriores
+
+        // URL da API Nominatim para geocodificação
+        const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+
+        // Fazendo uma requisição fetch para buscar o local real
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length === 0) {
+                    suggestionsList.style.display = 'none'; // Ocultar lista se nenhum lugar for encontrado
+                   
+                    return;
+                }
+
+                // Limpar marcadores de buscas anteriores
+                this.map.eachLayer(layer => {
+                    if (layer instanceof L.Marker && layer.options.searchRelated) {
+                        this.map.removeLayer(layer);
+                    }
+                });
+
+                // Adicionar sugestões à lista
+                data.forEach(place => {
+                    const li = document.createElement('li');
+                    li.textContent = place.display_name; // Nome do lugar
+                    li.onclick = () => {
+                        this.addMarkerAndSetView(place.lat, place.lon, place.display_name); // Adicionar marcador e centralizar
+                        suggestionsList.style.display = 'none'; // Ocultar lista após seleção
+                    };
+                    suggestionsList.appendChild(li);
+                });
+
+                // Exibir a lista de sugestões
+                if (suggestionsList.childElementCount > 0) {
+                    suggestionsList.style.display = 'block';
+                } else {
+                    suggestionsList.style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao buscar o local:', error);
+                
+            });
+    }
+
+    // Função para adicionar um marcador e centralizar no mapa
+    addMarkerAndSetView(lat, lon, name) {
+        const marker = L.marker([lat, lon], { searchRelated: true })
+            .addTo(this.map)
+            .bindPopup(name)
+            .openPopup();
+
+        // Centralizar o mapa no lugar selecionado
+        this.map.setView([lat, lon], 12);
+    }
 
     // Função para alternar a camada base do mapa (continua a mesma)
     switchBaseLayer(provider) {

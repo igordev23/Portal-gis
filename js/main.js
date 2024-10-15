@@ -159,8 +159,78 @@ document.getElementById('map-provider-menu').addEventListener('click', function 
   }
 });
 
-// Seleciona o botão de fechar
-document.getElementById('close-map-btn').addEventListener('click', function () {
-  // Esconde o contêiner do mapa
-  document.getElementById('map-container').style.display = 'none';
+async function carregarDados() {
+  try {
+      const response = await fetch('https://portal-gis-back.onrender.com/api/dados');
+      const dados = await response.json();
+
+      const dadosDiv = document.getElementById('dados');
+      dadosDiv.innerHTML = ''; // Limpa o conteúdo anterior
+
+      if (dados.length === 0) {
+          dadosDiv.innerHTML = '<p>Nenhuma tabela encontrada.</p>';
+      }
+
+      dados.forEach(tabela => {
+          const tabelaDiv = document.createElement('div');
+          tabelaDiv.classList.add('tabela');
+
+          const titulo = document.createElement('h2');
+          titulo.innerText = `Tabela: ${tabela.nome}`;
+          tabelaDiv.appendChild(titulo);
+
+          // Cria uma tabela HTML para os dados
+          const table = document.createElement('table');
+          const thead = document.createElement('thead');
+          const tbody = document.createElement('tbody');
+
+          // Cria o cabeçalho da tabela com os nomes das colunas id, fclass e name
+          const headerRow = document.createElement('tr');
+          ['id', 'fclass', 'name'].forEach(coluna => {
+              const th = document.createElement('th');
+              th.innerText = coluna;
+              headerRow.appendChild(th);
+          });
+          thead.appendChild(headerRow);
+
+          // Preenche as linhas com os dados
+          tabela.dados.forEach(linha => {
+              const row = document.createElement('tr');
+
+              ['id', 'fclass', 'name'].forEach(coluna => {
+                  const td = document.createElement('td');
+                  td.innerText = linha[coluna] !== undefined ? linha[coluna] : ''; // Exibe a célula se existir
+                  row.appendChild(td);
+              });
+
+              tbody.appendChild(row);
+          });
+
+          table.appendChild(thead);
+          table.appendChild(tbody);
+          tabelaDiv.appendChild(table);
+
+          dadosDiv.appendChild(tabelaDiv);
+      });
+  } catch (error) {
+      console.error('Erro ao carregar dados:', error);
+      document.getElementById('dados').innerHTML = '<p>Erro ao carregar dados.</p>';
+  }
+}
+
+// Exibir ou ocultar a tabela ao clicar no botão
+document.getElementById('attribute-table-btn').addEventListener('click', () => {
+  const dadosDiv = document.getElementById('dados');
+  if (dadosDiv.style.display === 'none' || dadosDiv.style.display === '') {
+      carregarDados();  // Carregar os dados quando o botão for clicado
+      dadosDiv.style.display = 'block';
+  } else {
+      dadosDiv.style.display = 'none';
+  }
 });
+
+
+
+
+
+

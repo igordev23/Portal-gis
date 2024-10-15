@@ -59,29 +59,50 @@ export class MapController {
         this.dataFetcher.buscarDados();  // Chamando a função de busca de dados
     }
 
-    // Função para buscar no mapa (continua a mesma)
-    searchInMap(query) {
-        const lowerCaseQuery = query.toLowerCase();
-        const results = this.features.filter(feature =>
-            feature.name.toLowerCase().includes(lowerCaseQuery)
-        );
+   // Função para buscar lugares reais no mapa usando Nominatim
+searchInMap(query) {
+    const lowerCaseQuery = query.toLowerCase();
 
-        this.map.eachLayer(layer => {
-            if (layer instanceof L.Marker && !this.features.some(f => f.marker === layer)) {
-                this.map.removeLayer(layer);
+    // URL da API Nominatim para geocodificação (pesquisa de locais)
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+
+    // Fazendo uma requisição fetch para buscar o local real
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.length === 0) {
+                alert('Nenhum lugar encontrado.');
+                return;
             }
-        });
 
-        if (results.length > 0) {
-            results.forEach(feature => {
-                L.marker(feature.coordinates).addTo(this.map)
-                    .bindPopup(feature.name)
-                    .openPopup();
+            // Limpar marcadores de buscas anteriores
+            this.map.eachLayer(layer => {
+                if (layer instanceof L.Marker && layer.options.searchRelated) {
+                    this.map.removeLayer(layer);
+                }
             });
-        } else {
-            alert('Nenhum resultado encontrado.');
-        }
-    }
+
+            // Iterar sobre os resultados e adicionar marcadores ao mapa
+            data.forEach(place => {
+                const lat = place.lat;
+                const lon = place.lon;
+                const name = place.display_name;
+
+                // Adicionar um marcador para cada lugar encontrado
+                const marker = L.marker([lat, lon], { searchRelated: true })
+                    .addTo(this.map)
+                    .bindPopup(name)
+                    .openPopup();
+
+                // Centralizar o mapa no primeiro resultado
+                this.map.setView([lat, lon], 12);
+            });
+        })
+        .catch(error => {
+            console.error('Erro ao buscar o local:', error);
+            alert('Erro ao buscar o local.');
+        });
+}
 
     // Função para alternar a camada base do mapa (continua a mesma)
     switchBaseLayer(provider) {

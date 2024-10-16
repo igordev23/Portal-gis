@@ -3,10 +3,12 @@ export class GeoJSONController {
         this.map = map;
         this.layers = {};
         this.colors = {};
+        this.highlightColor = '#FF0000'; // Cor para destaque
         this.staticImageLayer = staticImageLayer;
         this.legendContent = document.getElementById('legend-content');
         this.selectorContainer = document.getElementById('selector');
         this.attributesContainer = document.getElementById('attributes-container'); // Container para exibir as tabelas de atributos
+        this.currentHighlightedLayer = null; // Camada atualmente destacada
 
         if (!this.selectorContainer) {
             console.error('Container de seleção de camadas não encontrado!');
@@ -62,13 +64,17 @@ export class GeoJSONController {
                     const name = item.name || 'N/A';
                     geoJsonLayer.bindPopup(`<strong>${tabela.nome}</strong><br>Classe: ${fclass}<br>Nome: ${name}`);
 
+                    // Associar o item ao geoJsonLayer para referência futura
+                    item.geoJsonLayer = geoJsonLayer;
+
                     layerGroup.addLayer(geoJsonLayer);
                 }
             });
 
-            this.layers[tabela.nome] = { layerGroup, geometryType };
+            this.layers[tabela.nome] = { layerGroup, geometryType, dados: tabela.dados };
         });
     }
+
     updateLayerSelection(dados) {
         this.selectorContainer.innerHTML = `
             <div id="camadas-header">
@@ -77,7 +83,7 @@ export class GeoJSONController {
             <input type="checkbox" id="static-image" value="static-image">
             <label for="static-image">Raster</label><br>
         `;
-    
+
         dados.forEach(tabela => {
             const checkboxId = `layer-${tabela.nome}`;
             const checkboxHtml = `
@@ -89,24 +95,20 @@ export class GeoJSONController {
             `;
             this.selectorContainer.insertAdjacentHTML('beforeend', checkboxHtml);
         });
-    
+
         this.setupCheckboxListeners();
         this.setupDetailsListeners(dados); // Configura os listeners
     
-        // Adicionando o listener para os botões de detalhes
         dados.forEach(tabela => {
             const checkboxId = `layer-${tabela.nome}`;
             const detailsButton = document.getElementById(`details-${checkboxId}`);
             detailsButton.addEventListener('click', () => {
                 const attributesContainer = document.getElementById('attributes-container');
                 attributesContainer.style.display = 'block'; // Mostra a tabela de atributos
-                // Aqui você pode adicionar código para preencher a tabela de atributos conforme necessário
-               
             });
         });
     }
-    
-    // Função para gerar e exibir a tabela de atributos no container
+
     generateAttributesTable(dados) {
         let tableHtml = `
           <button class="close-btn">&times;</button>
@@ -119,7 +121,7 @@ export class GeoJSONController {
 
         dados.forEach(linha => {
             tableHtml += `
-              <tr>
+              <tr class="attribute-row" data-id="${linha.id}">
                 <td>${linha.id || ''}</td>
                 <td>${linha.fclass || ''}</td>
                 <td>${linha.name || ''}</td>
@@ -131,7 +133,6 @@ export class GeoJSONController {
         return tableHtml;
     }
 
-    // Configura os eventos de clique para os botões de detalhes
     setupDetailsListeners(dados) {
         document.querySelectorAll('.details-btn').forEach(button => {
             button.addEventListener('click', (event) => {
@@ -140,20 +141,48 @@ export class GeoJSONController {
                 
                 if (tabelaSelecionada) {
                     const attributesTable = this.generateAttributesTable(tabelaSelecionada.dados);
-
-                    // Limpa o container de atributos antes de exibir a nova tabela
                     this.attributesContainer.innerHTML = attributesTable;
 
-                  // Configura o botão de fechar (X) para ocultar a tabela
                     document.querySelector('.close-btn').addEventListener('click', () => {
-                        this.attributesContainer.style.display = 'none'; // Oculta o contêiner
-                        this.attributesContainer.innerHTML = ''; // Limpa o conteúdo
-});
+                        this.attributesContainer.style.display = 'none';
+                        this.attributesContainer.innerHTML = '';
+                    });
 
+                    this.setupRowClickListener(tabelaSelecionada.dados); // Configura os cliques nas linhas da tabela
                 }
             });
         });
     }
+
+    setupRowClickListener(dados) {
+        document.querySelectorAll('.attribute-row').forEach(row => {
+            row.addEventListener('click', (event) => {
+                const id = event.currentTarget.getAttribute('data-id');
+                const selectedFeature = dados.find(item => item.id == id);
+    
+                if (selectedFeature) {
+                    // Limpar destaque anterior
+                    if (this.currentHighlightedLayer) {
+                        this.currentHighlightedLayer.setStyle({ color: this.colors[selectedFeature.fclass] });
+                    }
+    
+                    // Aplicar novo destaque
+                    this.currentHighlightedLayer = selectedFeature.geoJsonLayer;
+                    this.currentHighlightedLayer.setStyle({ color: this.highlightColor });
+    
+                    // Fazer zoom na feição
+                    const bounds = this.currentHighlightedLayer.getBounds();
+                    this.map.fitBounds(bounds);
+    
+                    // Após 5 segundos, restaurar a cor original
+                    setTimeout(() => {
+                        this.currentHighlightedLayer.setStyle({ color: this.colors[selectedFeature.fclass] });
+                    }, 5000); // 5000 milissegundos = 5 segundos
+                }
+            });
+        });
+    }
+    
 
     updateLegend() {
         this.legendContent.innerHTML = '';
@@ -219,23 +248,21 @@ export class GeoJSONController {
 
         document.querySelectorAll('#selector input[type="checkbox"]:not([value="static-image"]):checked').forEach(checkbox => {
             const layerValue = checkbox.value;
-            this.loadGeoJSON(layerValue);
+            const layer = this.layers[layerValue].layerGroup;
+            if (layer) {
+                layer.addTo(this.map);
+            }
         });
 
         this.updateLegend();
     }
 
-    loadGeoJSON(layerName) {
-        const layer = this.layers[layerName].layerGroup;
-        if (layer && !this.map.hasLayer(layer)) {
-            layer.addTo(this.map);
-        }
-        this.updateLegend();
-    }
-
     setupCheckboxListeners() {
-        document.querySelectorAll('#selector input[type="checkbox"]').forEach(checkbox => {
-            checkbox.addEventListener('change', () => this.updateLayers());
+        const allCheckboxes = document.querySelectorAll('#selector input[type="checkbox"]');
+        allCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', () => {
+                this.updateLayers();
+            });
         });
     }
 }

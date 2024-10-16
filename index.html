@@ -56,17 +56,19 @@
       
       <header style="width: auto;" class="header">
         <img src="./assets/337a3c_d996bcdd649b4551873452079dd5a583~mv2.png" alt="Logo" class="logo" />
-        <h1 class="title">Portal Geometria GIS  </h1>
+        <h1 class="title">Portal Geometria GIS        </h1><p>   </p>
         
         <div class="search-container">
             <input type="text" id="search-input" placeholder="Search" class="search-input" />
-            <button id="search-button" class="search-button">
+  0          <button id="search-button" class="search-button">
                 <i class="fas fa-search"></i>
             </button>
             <ul id="suggestions-list" class="suggestions-list"></ul> <!-- Lista de sugestões -->
         </div>
     </header>
     
+
+
         
       </div>
       <div id="legend" style="border: 1px solid #ccc; padding: 10px; margin-top: 10px; display: none;">
@@ -81,8 +83,13 @@
       
   <!-- Botão ao redor do mapa -->
 <button id="base-map-btn" class="map-button"><i class="fas fa-map"></i></button>
+
 <div id="dados" class="container" style="display: none
 "></div>
+<!-- Container para a tabela de atributos -->
+<div id="attributes-container"   class="container"  style="border: 1px solid #ccc; padding: 10px; margin-top: 20px; display: none;">
+  <!-- A tabela de atributos será inserida aqui -->
+</div>
 <!-- Menu de provedores de mapa -->
 <div id="map-provider-menu" class="map-provider-menu hidden">
   <div id="map-provider-header">
@@ -132,7 +139,10 @@
     <span>Coordenadas:</span> 
     <span id="coords" style="margin-left: 5px; font-weight: bold;">0, 0</span>
 </div>
-
+   <!-- Container para a tabela de atributos -->
+   <div id="attributes-container" style="border: 1px solid #ccc; padding: 10px; margin-top: 20px;">
+    <!-- A tabela de atributos será inserida aqui -->
+  </div>
 
 
 

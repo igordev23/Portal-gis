@@ -230,6 +230,16 @@ document.getElementById('attribute-table-btn').addEventListener('click', () => {
 });
 
 
+ // Exibe ou oculta a linha divisória ao clicar no botão (se ainda desejar manter essa funcionalidade)
+ this.swipeToolBtn.addEventListener('click', () => {
+  if (this.dividerLine.style.display === 'none' || this.dividerLine.style.display === '') {
+      this.dividerLine.style.left = '50%'; // Inicializa no meio
+      this.dividerLine.style.display = 'block';
+  } else {
+      this.dividerLine.style.display = 'none';
+  }
+});
+
 
 
 

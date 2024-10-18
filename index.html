@@ -18,6 +18,9 @@
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-swipe/leaflet-swipe.css" />
+
+
   <style>
     /* Garantir que o mapa ocupe toda a tela */
     #map {
@@ -44,6 +47,21 @@
     .map-button:hover {
       background-color: #2563EB; /* Cor de fundo ao passar o mouse */
     }
+    #divider-line {
+    position: absolute;
+    width: 1px; /* Visivelmente a linha ainda é fina */
+    background-color: #333;
+    height: 100%;
+    top: 0;
+    cursor: col-resize; /* Muda o cursor para um ícone de redimensionamento */
+    z-index: 1000; /* Certifique-se de que a linha está acima de outros elementos */
+
+    /* Aumenta a área clicável sem alterar o visual */
+    padding-left: 3px;
+    padding-right: 3px;
+    margin-left: -10px; /* Centraliza a área clicável ao redor da linha */
+}
+
 
     
   </style>
@@ -54,20 +72,19 @@
  
     <div id="map" class="w-full h-screen rounded-lg shadow-lg overflow-hidden">
       
-      <header style="width: auto;" class="header">
+      <header style="width: auto; z-index: 1001;" class="header">
         <img src="./assets/337a3c_d996bcdd649b4551873452079dd5a583~mv2.png" alt="Logo" class="logo" />
-        <h1 class="title">Portal Geometria GIS        </h1><p>   </p>
+        <h1 class="title">Portal Geometria GIS        </h1><p style="color: #333;">   </p>
         
         <div class="search-container">
             <input type="text" id="search-input" placeholder="Search" class="search-input" />
-  0          <button id="search-button" class="search-button">
+            <button id="search-button" class="search-button">
                 <i class="fas fa-search"></i>
             </button>
             <ul id="suggestions-list" class="suggestions-list"></ul> <!-- Lista de sugestões -->
         </div>
     </header>
-    
-
+    <div id="divider-line" style="display:none; position:absolute; top:0; bottom:0; width:4px; background-color:black;"></div>
 
         
       </div>
@@ -80,7 +97,7 @@
         <div id="legend-content"></div>
     </div>
       
-      
+   
   <!-- Botão ao redor do mapa -->
 <button id="base-map-btn" class="map-button"><i class="fas fa-map"></i></button>
 
@@ -122,6 +139,9 @@
   <button id="print-btn" class="map-button"><i class="fas fa-print"></i></button>
   <button id="stat-analysis-btn" class="map-button"><i class="fas fa-chart-bar"></i></button>
 
+ 
+
+
   <div id="coordinates" style="
     position: absolute; 
     bottom: 10px; 
@@ -139,8 +159,12 @@
     <span>Coordenadas:</span> 
     <span id="coords" style="margin-left: 5px; font-weight: bold;">0, 0</span>
 </div>
-  
 
+
+
+
+
+<script src="https://unpkg.com/leaflet-swipe/leaflet-swipe.js"></script>
 
   <script type="module" src="./js/main.js"></script>
   

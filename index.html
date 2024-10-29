@@ -49,20 +49,33 @@
     }
     #divider-line {
     position: absolute;
-    width: 1px; /* Visivelmente a linha ainda é fina */
-    background-color: #333;
-    height: 100%;
     top: 0;
-    cursor: col-resize; /* Muda o cursor para um ícone de redimensionamento */
-    z-index: 1000; /* Certifique-se de que a linha está acima de outros elementos */
-
-    /* Aumenta a área clicável sem alterar o visual */
-    padding-left: 3px;
-    padding-right: 3px;
-    margin-left: -10px; /* Centraliza a área clicável ao redor da linha */
+    bottom: 0;
+    width: 2px;
+    background-color: red;
+    z-index: 1000;
+    cursor: ew-resize;
 }
 
+#left-map {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 50%; /* Ajustado por JavaScript */
+    z-index: 1004;
+    overflow: hidden;
+}
 
+#right-map {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%; /* Ajustado por JavaScript */
+    width: 50%; /* Ajustado por JavaScript */
+    z-index: 1004;
+    overflow: hidden;
+}
     
   </style>
 </head>
@@ -84,6 +97,8 @@
             <ul id="suggestions-list" class="suggestions-list"></ul> <!-- Lista de sugestões -->
         </div>
     </header>
+    <div id="map1" class="map"></div>
+        <div id="map2" class="map"></div>
     <div id="divider-line" style="display:none; position:absolute; top:0; bottom:0; width:4px; background-color:black;"></div>
 
         
@@ -124,18 +139,18 @@
 
 
 
-  <button id="symbol-customization-btn" class="map-button"><i class="fas fa-paint-brush"></i></button>
-  <button id="filter-layers-btn" class="map-button"><i class="fas fa-filter"></i></button>
+  
+  
   <button id="legend-btn" class="map-button"><i class="fas fa-list"></i></button>
   <button id="identify-btn" class="map-button"><i class="fas fa-search"></i></button>
-  <button id="pan-btn" class="map-button"><i class="fas fa-arrows-alt"></i></button>
+ 
   <button id="home-btn" class="map-button"><i class="fas fa-home"></i></button>
-  <button id="attribute-table-btn" class="map-button"><i class="fas fa-table"></i></button>
+ 
   
   <button id="measure-btn" class="map-button"><i class="fas fa-ruler"></i></button>
   <button id="terrain-profile-btn" class="map-button"><i class="fas fa-mountain"></i></button>
   <button id="swipe-tool-btn" class="map-button"><i class="fas fa-exchange-alt"></i></button>
-  <button id="filter-features-btn" class="map-button"><i class="fas fa-filter"></i></button>
+ 
   <button id="print-btn" class="map-button"><i class="fas fa-print"></i></button>
   <button id="stat-analysis-btn" class="map-button"><i class="fas fa-chart-bar"></i></button>
 

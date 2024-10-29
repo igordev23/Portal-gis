@@ -33,29 +33,7 @@
     background-color: #2563EB; /* Cor de fundo ao passar o mouse */
   }
 
-  /* Posicionamento dos botões na parte inferior, alinhados horizontalmente */
-/* Reposicionando os botões para centralizá-los ainda mais */
-#base-map-btn { bottom: 20px; left: calc(50% - 200px); }
-#operational-layers-btn { bottom: 20px; left: calc(50% - 150px); }
-#symbol-customization-btn { bottom: 20px; left: calc(50% - 100px); }
-#filter-layers-btn { bottom: 20px; left: calc(50% - 50px); }
-#legend-btn { bottom: 20px; left: calc(50%); }
-#identify-btn { bottom: 20px; left: calc(50% + 50px); }
-#pan-btn { bottom: 20px; left: calc(50% + 100px); }
-#zoom-in-btn { bottom: 20px; left: calc(50% + 150px); }
-#zoom-out-btn { bottom: 20px; left: calc(50% + 200px); }
-
-
-
-  /* Posicionamento dos botões à direita */
-  #home-btn { top: 100px; right: 10px; }
-  #attribute-table-btn { top: 150px; right: 10px; }
-  #measure-btn { top: 200px; right: 10px; }
-  #terrain-profile-btn { top: 250px; right: 10px; }
-  #swipe-tool-btn { top: 300px; right: 10px; }
-  #filter-features-btn { top: 350px; right: 10px; }
-  #print-btn { top: 400px; right: 10px; }
-  #stat-analysis-btn { top: 450px; right: 10px; }
+ 
 
   #legend {
     position: absolute; /* Posiciona a div em relação ao seu contêiner pai */
@@ -311,13 +289,13 @@
   }
 
   .map-button:hover {
-    background-color: #2563EB; /* Cor de fundo ao passar o mouse */
+    background-color: #ebac25; /* Cor de fundo ao passar o mouse */
   }
 
   /* Posicionamento dos botões na parte inferior, alinhados horizontalmente */
 /* Reposicionando os botões para centralizá-los ainda mais */
-#base-map-btn { bottom: 20px; left: calc(50% - 200px); }
-#operational-layers-btn { bottom: 20px; left: calc(50% - 150px); }
+#base-map-btn { bottom: 20px; left: calc(50% - 100px); }
+#operational-layers-btn { bottom: 20px; left: calc(50% - 50px); }
 #symbol-customization-btn { bottom: 20px; left: calc(50% - 100px); }
 #filter-layers-btn { bottom: 20px; left: calc(50% - 50px); }
 #legend-btn { bottom: 20px; left: calc(50%); }
@@ -329,14 +307,14 @@
 
 
   /* Posicionamento dos botões à direita */
-  #home-btn { top: 100px; right: 10px; }
+  #home-btn { top: 80px; left: 10px; }
   #attribute-table-btn { top: 150px; right: 10px; }
   #measure-btn { top: 200px; right: 10px; }
   #terrain-profile-btn { top: 250px; right: 10px; }
   #swipe-tool-btn { top: 300px; right: 10px; }
   #filter-features-btn { top: 350px; right: 10px; }
-  #print-btn { top: 400px; right: 10px; }
-  #stat-analysis-btn { top: 450px; right: 10px; }
+  #print-btn { top: 300px; right: 10px; }
+  #stat-analysis-btn { top: 350px; right: 10px; }
 
   #legend {
     position: absolute; /* Posiciona a div em relação ao seu contêiner pai */

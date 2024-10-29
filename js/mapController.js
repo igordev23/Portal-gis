@@ -1,19 +1,19 @@
 import { MeasurementController } from './MeasurementController.js';
 import { GeoJSONController } from './GeoJSONController.js';
-import { DataFetcher } from './DataFetcher.js'; // Importando a nova classe
-import { SwipeController } from './SwipeController.js'; // Importando o SwipeController
+import { DataFetcher } from './DataFetcher.js';
+import { SwipeController } from './SwipeController.js';
 
 export class MapController {
     constructor(mapElementId) {
-        // Define as camadas de mapas base
+        // Inicializando o mapa e a camada base OSM
         this.osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         });
 
-        // Inicializa o mapa com a camada OSM
         this.map = L.map(mapElementId, { center: [-2.99241, -45.40649], zoom: 10, layers: [this.osm] });
         this.currentBaseLayer = this.osm;
 
+        // Definindo outras camadas base
         this.satellite = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenTopoMap contributors'
         });
@@ -34,152 +34,139 @@ export class MapController {
             attribution: '&copy; <a href="https://carto.com/">CartoDB</a> contributors'
         });
 
-        // Inicializar o MeasurementController para adicionar funcionalidade de medição
+        // Adicionando os controladores
         this.measurementController = new MeasurementController(this.map);
 
-        // Coordenadas ajustadas da imagem em EPSG:4326 (latitude/longitude)
         const imageBounds = [[-2.992508, -45.369120], [-2.954409, -45.314294]];
         this.staticImageLayer = L.imageOverlay('raster_jpeg.jpeg', imageBounds, {
             opacity: 0.8,
             attribution: '© Raster Image'
         });
 
-        // Inicializar os controladores adicionais
         this.geoJSONController = new GeoJSONController(this.map, this.staticImageLayer);
         this.geoJSONController.setupCheckboxListeners();
         this.geoJSONController.updateLayers();
 
-        // Inicializar o array para armazenar as características do mapa
         this.features = [];
 
-        // Configurar coordenadas do mouse
         this.setupMouseCoordinates();
 
-        // Inicializar o DataFetcher e chamar a função buscarDados
         this.dataFetcher = new DataFetcher(this.map, this.geoJSONController);
-        this.dataFetcher.buscarDados(); // Chamando a função de busca de dados
+        this.dataFetcher.buscarDados();
 
-         // Inicialize o SwipeController após o mapa estar pronto
-         this.swipeController = new SwipeController(this.map, 'divider-line', 'swipe-tool-btn');
+        // Ajuste do SwipeController para garantir camadas base no lado correto
+        this.swipeController = new SwipeController(this.map, 'divider-line', 'swipe-tool-btn', this.osm, this.satellite);
 
-        // Configurar o evento de input para busca de lugares
         this.setupSearchEvent();
     }
 
-    // Função para configurar o evento de busca
+    // Método atualizado para alternar camadas base corretamente
+    switchBaseLayer(provider, side = 'left') {
+        let newLayer;
+
+        switch (provider) {
+            case 'osm':
+                newLayer = this.osm;
+                break;
+            case 'satellite':
+                newLayer = this.satellite;
+                break;
+            case 'cartodb':
+                newLayer = this.cartoDB_Positron;
+                break;
+            case 'stamen-watercolor':
+                newLayer = this.stamenWatercolor;
+                break;
+            case 'esri-world-imagery':
+                newLayer = this.esriWorldImagery;
+                break;
+            case 'cartodb-dark-matter':
+                newLayer = this.cartoDB_DarkMatter;
+                break;
+            default:
+                newLayer = this.osm;
+        }
+
+        // Remove a camada base anterior, se houver
+        if (this.currentBaseLayer && this.map.hasLayer(this.currentBaseLayer)) {
+            this.map.removeLayer(this.currentBaseLayer);
+        }
+
+        // Adiciona a nova camada base ao mapa
+        this.currentBaseLayer = newLayer;
+        this.map.addLayer(newLayer);
+
+        // Atualiza as camadas no SwipeController se estiver ativo
+        if (this.swipeController.isSwipeActive) {
+            if (side === 'left') {
+                this.swipeController.leftMapLayer = newLayer;
+            } else {
+                this.swipeController.rightMapLayer = newLayer;
+            }
+            this.swipeController.setMapLayers();
+        }
+    }
+
+    disableSwipeController() {
+        this.swipeController.disableSwipe();
+    }
+
     setupSearchEvent() {
         document.getElementById('search-input').addEventListener('input', (event) => {
             const query = event.target.value;
-            if (query.length > 2) { // Começar a busca após 2 caracteres
+            if (query.length > 2) {
                 this.searchInMap(query);
             } else {
-                document.getElementById('suggestions-list').style.display = 'none'; // Ocultar lista se menos de 2 caracteres
+                document.getElementById('suggestions-list').style.display = 'none';
             }
         });
 
-        // Evento para ocultar a lista de sugestões ao clicar fora
         document.addEventListener('click', (event) => {
             const suggestionsList = document.getElementById('suggestions-list');
             if (!suggestionsList.contains(event.target) && event.target.id !== 'search-input') {
-                suggestionsList.style.display = 'none'; // Ocultar lista se clicar fora
+                suggestionsList.style.display = 'none';
             }
         });
     }
 
-    // Função para buscar lugares reais no mapa usando Nominatim
     searchInMap(query) {
-        const lowerCaseQuery = query.toLowerCase();
-        const suggestionsList = document.getElementById('suggestions-list');
-        suggestionsList.innerHTML = ''; // Limpar sugestões anteriores
-
-        // URL da API Nominatim para geocodificação
         const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`;
+        const suggestionsList = document.getElementById('suggestions-list');
+        suggestionsList.innerHTML = '';
 
-        // Fazendo uma requisição fetch para buscar o local real
         fetch(url)
             .then(response => response.json())
             .then(data => {
                 if (data.length === 0) {
-                    suggestionsList.style.display = 'none'; // Ocultar lista se nenhum lugar for encontrado
+                    suggestionsList.style.display = 'none';
                     return;
                 }
 
-                // Limpar marcadores de buscas anteriores
                 this.map.eachLayer(layer => {
                     if (layer instanceof L.Marker && layer.options.searchRelated) {
                         this.map.removeLayer(layer);
                     }
                 });
 
-                // Adicionar sugestões à lista
                 data.forEach(place => {
                     const li = document.createElement('li');
-                    li.textContent = place.display_name; // Nome do lugar
-                    li.onclick = () => {
-                        this.addMarkerAndSetView(place.lat, place.lon, place.display_name); // Adicionar marcador e centralizar
-                        suggestionsList.style.display = 'none'; // Ocultar lista após seleção
-                    };
+                    li.textContent = place.display_name;
+                    li.addEventListener('click', () => {
+                        const lat = place.lat;
+                        const lon = place.lon;
+
+                        this.map.setView([lat, lon], 13);
+
+                        const marker = L.marker([lat, lon], { searchRelated: true }).addTo(this.map);
+                    });
+
                     suggestionsList.appendChild(li);
                 });
 
-                // Exibir a lista de sugestões
-                if (suggestionsList.childElementCount > 0) {
-                    suggestionsList.style.display = 'block';
-                } else {
-                    suggestionsList.style.display = 'none';
-                }
-            })
-            .catch(error => {
-                console.error('Erro ao buscar o local:', error);
+                suggestionsList.style.display = 'block';
             });
     }
 
-    // Função para adicionar um marcador e centralizar no mapa
-    addMarkerAndSetView(lat, lon, name) {
-        const marker = L.marker([lat, lon], { searchRelated: true })
-            .addTo(this.map)
-            .bindPopup(name)
-            .openPopup();
-
-        // Centralizar o mapa no lugar selecionado
-        this.map.setView([lat, lon], 12);
-    }
-
-    // Função para alternar a camada base do mapa (continua a mesma)
-    switchBaseLayer(provider) {
-        if (this.currentBaseLayer) {
-            this.map.removeLayer(this.currentBaseLayer);
-        }
-
-        switch (provider) {
-            case 'osm':
-                this.currentBaseLayer = this.osm;
-                break;
-            case 'satellite':
-                this.currentBaseLayer = this.satellite;
-                break;
-            case 'cartodb':
-                this.currentBaseLayer = this.cartoDB_Positron;
-                break;
-            case 'stamen-watercolor':
-                this.currentBaseLayer = this.stamenWatercolor;
-                break;
-            case 'esri-world-imagery':
-                this.currentBaseLayer = this.esriWorldImagery;
-                break;
-            case 'cartodb-dark-matter':
-                this.currentBaseLayer = this.cartoDB_DarkMatter;
-                break;
-            default:
-                this.currentBaseLayer = this.osm;
-        }
-
-        if (this.currentBaseLayer) {
-            this.currentBaseLayer.addTo(this.map);
-        }
-    }
-
-    // Função para exibir coordenadas do mouse no mapa (continua a mesma)
     setupMouseCoordinates() {
         this.map.on('mousemove', (e) => {
             const latLng = e.latlng;
@@ -187,3 +174,5 @@ export class MapController {
         });
     }
 }
+
+

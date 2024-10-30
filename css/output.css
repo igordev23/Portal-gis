@@ -35,20 +35,6 @@
 
  
 
-  #legend {
-    position: absolute; /* Posiciona a div em relação ao seu contêiner pai */
-    top: 50px; /* Distância do topo */
-    left: 20px; /* Distância da esquerda */
-    background-color: rgba(255, 255, 255, 0.9); /* Fundo branco com leve opacidade */
-    color: black; /* Texto preto */
-    border-radius: 10px; /* Bordas arredondadas */
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Sombra suave */
-    padding: 0; /* Remove espaçamento interno para a janela */
-    width: 250px; /* Largura fixa maior */
-    z-index: 999; /* Z-index para ficar acima de outros elementos */
-    transition: all 0.3s ease; /* Animação suave para transições */
-    display: none; /* Inicialmente oculta */
-}
 
 /* Barra de título da janela */
 #legend-header {
@@ -105,21 +91,7 @@
 
 
 
-/* Estilo do menu de mapas base */
-#map-provider-menu {
-  position: absolute;
-  top: 50px;
-  left: 20px;
-  background-color: rgba(255, 255, 255, 0.9);
-  color: black;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  padding: 0;
-  width: 250px;
-  z-index: 999;
-  transition: all 0.3s ease;
-  display: none; /* Oculto por padrão */
-}
+
 
 
 
@@ -319,7 +291,7 @@
   #legend {
     position: absolute; /* Posiciona a div em relação ao seu contêiner pai */
     top: 50px; /* Distância do topo */
-    left: 20px; /* Distância da esquerda */
+    right: 100px; /* Distância da esquerda */
     background-color: rgba(255, 255, 255, 0.9); /* Fundo branco com leve opacidade */
     color: black; /* Texto preto */
     border-radius: 10px; /* Bordas arredondadas */
@@ -390,7 +362,7 @@
 #map-provider-menu {
   position: absolute;
   top: 50px;
-  left: 20px;
+  left: 50px;
   background-color: rgba(255, 255, 255, 0.9);
   color: black;
   border-radius: 10px;
@@ -930,61 +902,10 @@ body {
 3. Ensure horizontal rules are visible by default.
 */
 
-/* Estilo para a barra de desenho */
-.leaflet-draw-toolbar {
-  background-color: #f9f9f9; /* Fundo claro para um visual limpo */
-  border: 1px solid #ccc; /* Borda sutil */
-  border-radius: 8px; /* Bordas arredondadas */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Sombra mais pronunciada */
-  display: flex; /* Flexbox para alinhar os botões */
-  padding: 5px 10px; /* Espaçamento interno ajustado */
-  gap: 10px; /* Espaçamento entre os botões */
-}
 
-/* Estilo para os botões de desenho */
-.leaflet-draw-toolbar a {
-  background-color: #0078D7; /* Azul padrão */
-  border: none; /* Remove borda padrão */
-  border-radius: 50%; /* Bordas completamente arredondadas */
-  width: 40px; /* Largura fixa dos botões */
-  height: 40px; /* Altura fixa dos botões */
-  display: flex; /* Flex para centralizar o ícone */
-  justify-content: center;
-  align-items: center;
-  color: white; /* Cor do ícone */
-  font-size: 20px; /* Tamanho do ícone */
-  transition: background-color 0.3s ease, transform 0.2s ease; /* Animação suave */
-}
 
-.leaflet-draw-toolbar a:hover {
-  background-color: #005a9e; /* Cor mais escura ao passar o mouse */
-  transform: scale(1.1); /* Efeito de zoom suave */
-}
 
-/* Ícones personalizados */
-.leaflet-draw-draw-polyline::before {
-  content: '\f7a4'; /* Ícone de linha reta */
-  font-family: "Font Awesome 5 Free"; 
-  font-weight: 900;
-}
 
-.leaflet-draw-draw-polygon::before {
-  content: '\f5ee'; /* Ícone de polígono */
-  font-family: "Font Awesome 5 Free"; 
-  font-weight: 900;
-}
-
-.leaflet-draw-draw-rectangle::before {
-  content: '\f0c8'; /* Ícone de retângulo */
-  font-family: "Font Awesome 5 Free"; 
-  font-weight: 900;
-}
-
-.leaflet-draw-draw-circlemarker::before {
-  content: '\f192'; /* Ícone de círculo */
-  font-family: "Font Awesome 5 Free"; 
-  font-weight: 900;
-}
 
 
 
@@ -2132,6 +2053,48 @@ html, body {
   display: none  /* Forçar a ocultação da toolbar */
 }
 
+/* Estiliza a seção principal da barra de ferramentas de desenho */
+.leaflet-draw.leaflet-control {
+  display: none;
+  position: absolute;
+  top: 150px; /* Ajuste a posição */
+  left: 2px; /* Posição mais à esquerda */
+  background-color: #4947f7;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+/* Estilo para os botões da barra de ferramentas */
+.leaflet-draw-toolbar a {
+  background-color: #0078D7;
+  border: none;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+  font-size: 22px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  margin: 5px 0;
+}
+
+.leaflet-draw-toolbar a:hover {
+  background-color: #005a9e;
+  transform: scale(1.1);
+}
+
+.leaflet-draw-toolbar a:active {
+  transform: scale(0.95);
+}
+
+
+
+
 #mouse-coordinates {
   background-color: rgba(255, 255, 255, 0.8);
   padding: 5px;
@@ -2266,61 +2229,10 @@ body {
 3. Ensure horizontal rules are visible by default.
 */
 
-/* Estilo para a barra de desenho */
-.leaflet-draw-toolbar {
-  background-color: #f9f9f9; /* Fundo claro para um visual limpo */
-  border: 1px solid #ccc; /* Borda sutil */
-  border-radius: 8px; /* Bordas arredondadas */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15); /* Sombra mais pronunciada */
-  display: flex; /* Flexbox para alinhar os botões */
-  padding: 5px 10px; /* Espaçamento interno ajustado */
-  gap: 10px; /* Espaçamento entre os botões */
-}
 
-/* Estilo para os botões de desenho */
-.leaflet-draw-toolbar a {
-  background-color: #0078D7; /* Azul padrão */
-  border: none; /* Remove borda padrão */
-  border-radius: 50%; /* Bordas completamente arredondadas */
-  width: 40px; /* Largura fixa dos botões */
-  height: 40px; /* Altura fixa dos botões */
-  display: flex; /* Flex para centralizar o ícone */
-  justify-content: center;
-  align-items: center;
-  color: white; /* Cor do ícone */
-  font-size: 20px; /* Tamanho do ícone */
-  transition: background-color 0.3s ease, transform 0.2s ease; /* Animação suave */
-}
 
-.leaflet-draw-toolbar a:hover {
-  background-color: #005a9e; /* Cor mais escura ao passar o mouse */
-  transform: scale(1.1); /* Efeito de zoom suave */
-}
 
-/* Ícones personalizados */
-.leaflet-draw-draw-polyline::before {
-  content: '\f7a4'; /* Ícone de linha reta */
-  font-family: "Font Awesome 5 Free"; 
-  font-weight: 900;
-}
 
-.leaflet-draw-draw-polygon::before {
-  content: '\f5ee'; /* Ícone de polígono */
-  font-family: "Font Awesome 5 Free"; 
-  font-weight: 900;
-}
-
-.leaflet-draw-draw-rectangle::before {
-  content: '\f0c8'; /* Ícone de retângulo */
-  font-family: "Font Awesome 5 Free"; 
-  font-weight: 900;
-}
-
-.leaflet-draw-draw-circlemarker::before {
-  content: '\f192'; /* Ícone de círculo */
-  font-family: "Font Awesome 5 Free"; 
-  font-weight: 900;
-}
 
 
 

@@ -53,6 +53,8 @@ export class MapController {
 
         this.features = [];
 
+        
+
         this.setupMouseCoordinates();
 
         this.dataFetcher = new DataFetcher(this.map, this.geoJSONController);

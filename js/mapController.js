@@ -5,12 +5,16 @@ import { SwipeController } from './SwipeController.js';
 
 export class MapController {
     constructor(mapElementId) {
+
+        this.initialCenter = [-2.99241, -45.40649];
+        this.initialZoom = 10;
+
         // Inicializando o mapa e a camada base OSM
         this.osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '© OpenStreetMap contributors'
         });
 
-        this.map = L.map(mapElementId, { center: [-2.99241, -45.40649], zoom: 10, layers: [this.osm] });
+        this.map = L.map(mapElementId, { center: this.initialCenter, zoom: this.initialZoom, layers: [this.osm] });
         this.currentBaseLayer = this.osm;
 
         // Definindo outras camadas base
@@ -58,7 +62,13 @@ export class MapController {
         this.swipeController = new SwipeController(this.map, 'divider-line', 'swipe-tool-btn', this.osm, this.satellite);
 
         this.setupSearchEvent();
+
+         
     }
+
+    resetMapView(){
+        this.map.setView(this.initialCenter, this.initialZoom);
+     }
 
     // Método atualizado para alternar camadas base corretamente
     switchBaseLayer(provider, side = 'left') {
@@ -173,6 +183,7 @@ export class MapController {
             document.getElementById('coords').textContent = `${latLng.lat.toFixed(5)}, ${latLng.lng.toFixed(5)}`;
         });
     }
+    
 }
 
 

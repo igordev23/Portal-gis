@@ -4,8 +4,17 @@
 // Importa o MapController do arquivo mapController.js
 import { MapController } from './mapController.js';
 
-// Inicializa o controlador de mapas
-const mapController = new MapController('map');
+
+// Cria a instância e expõe globalmente após o carregamento do DOM
+document.addEventListener("DOMContentLoaded", function() {
+  const mapControllerInstance = new MapController("map");
+  window.mapController = mapControllerInstance; // Expondo a instância globalmente
+});
+
+// Adiciona o evento de clique para o botão "home-btn"
+document.getElementById("home-btn").addEventListener("click", () => {
+  window.mapController.resetMapView();
+});
 
 // Exibe o menu de provedores de mapas quando o botão "Base Map" é clicado
 document.getElementById('base-map-btn').addEventListener('click', function () {
@@ -239,7 +248,6 @@ document.getElementById('attribute-table-btn').addEventListener('click', () => {
       this.dividerLine.style.display = 'none';
   }
 });
-
 
 
 

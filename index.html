@@ -156,23 +156,26 @@
 
  
 
-
   <div id="coordinates" style="
-    position: absolute; 
-    bottom: 10px; 
-    left: 10px; 
-    background: rgba(9, 16, 36, 0.8); /* Fundo azul com opacidade */
-    padding: 5px 10px; /* Ajuste do padding para deixá-la menor */
-    border-radius: 8px; /* Bordas mais arredondadas */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); /* Sombra mais suave */
-    color: white; /* Texto branco */
-    font-size: 10px; /* Tamanho da fonte reduzido */
-    z-index: 1000;
-    display: flex; 
-    align-items: center;
-    justify-content: space-between;">
-    <span>Coordenadas:</span> 
-    <span id="coords" style="margin-left: 5px; font-weight: bold;">0, 0</span>
+  position: absolute; 
+  bottom: 10px; 
+  left: 10px; 
+  background: rgba(9, 16, 36, 0.8); 
+  padding: 5px 10px; 
+  border-radius: 8px; 
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); 
+  color: rgb(49, 140, 192); 
+  font-size: 15px; 
+  z-index: 1000;
+  display: flex; 
+  align-items: center;
+  justify-content: space-between;">
+  <span>Coordenadas:</span> 
+  <span id="coords" style="margin-left: 5px; font-weight: bold;">0, 0</span>
+  <select id="formatSelector" style="margin-left: 10px;">
+      <option value="decimal">Decimal</option>
+      <option value="utm">UTM</option>
+  </select>
 </div>
 
 
@@ -188,5 +191,10 @@
   
   <!-- Leaflet Draw JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
 </body>
 </html>

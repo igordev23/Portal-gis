@@ -57,7 +57,7 @@ export class MeasurementController {
       content += `Perímetro: ${layer.perimeterText} <br>`;
     }
     if (layer.distanceText) {
-      content += `Distância: ${layer.distanceText} <br>`;
+      content += `Extensão: ${layer.distanceText} <br>`;
     }
 
     if (content) {

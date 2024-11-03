@@ -5,7 +5,6 @@ import { SwipeController } from './SwipeController.js';
 
 export class MapController {
     constructor(mapElementId) {
-
         this.initialCenter = [-2.99241, -45.40649];
         this.initialZoom = 10;
 
@@ -52,27 +51,76 @@ export class MapController {
         this.geoJSONController.updateLayers();
 
         this.features = [];
-
         
-
         this.setupMouseCoordinates();
 
         this.dataFetcher = new DataFetcher(this.map, this.geoJSONController);
         this.dataFetcher.buscarDados();
 
-        // Ajuste do SwipeController para garantir camadas base no lado correto
+        // Configura o SwipeController para garantir camadas base no lado correto
         this.swipeController = new SwipeController(this.map, 'divider-line', 'swipe-tool-btn', this.osm, this.satellite);
 
-        this.setupSearchEvent();
+        // Configura o evento do botão de impressão
+        this.setupPrintEvent();
 
-         
+        this.setupSearchEvent();
     }
 
-    resetMapView(){
-        this.map.setView(this.initialCenter, this.initialZoom);
-     }
+    setupPrintEvent() {
+        const printBtn = document.getElementById('print-btn');
+        if (printBtn) {
+            printBtn.addEventListener('click', () => this.generatePDF());
+        }
+    }
 
-    // Método atualizado para alternar camadas base corretamente
+    generatePDF() {
+        // Captura o mapa como imagem
+        html2canvas(this.map.getContainer()).then(canvas => {
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jspdf.jsPDF('landscape', 'mm', 'a4');
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = pageWidth;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+            // Adiciona a imagem do mapa ao PDF
+            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+            // Adiciona legendas e camadas selecionadas
+            const selectedLayers = this.getSelectedLayersInfo();
+            let offsetY = imgHeight + 10;
+
+            // Adiciona título para a seção de legendas
+            pdf.setFontSize(12);
+            pdf.text("Legendas das Camadas:", 10, offsetY);
+            offsetY += 10;
+
+            // Adiciona cada legenda das camadas
+            selectedLayers.forEach((layer, index) => {
+                pdf.setFontSize(10);
+                pdf.text(`Camada ${index + 1}: ${layer}`, 10, offsetY);
+                offsetY += 10;
+            });
+
+            // Salva o PDF
+            pdf.save('mapa_com_legendas.pdf');
+        });
+    }
+
+    getSelectedLayersInfo() {
+        const layersInfo = [];
+        this.map.eachLayer(layer => {
+            if (layer.options && layer.options.attribution) {
+                layersInfo.push(layer.options.attribution);
+            }
+        });
+        return layersInfo;
+    }
+
+    resetMapView() {
+        this.map.setView(this.initialCenter, this.initialZoom);
+    }
+
     switchBaseLayer(provider, side = 'left') {
         let newLayer;
 
@@ -99,16 +147,13 @@ export class MapController {
                 newLayer = this.osm;
         }
 
-        // Remove a camada base anterior, se houver
         if (this.currentBaseLayer && this.map.hasLayer(this.currentBaseLayer)) {
             this.map.removeLayer(this.currentBaseLayer);
         }
 
-        // Adiciona a nova camada base ao mapa
         this.currentBaseLayer = newLayer;
         this.map.addLayer(newLayer);
 
-        // Atualiza as camadas no SwipeController se estiver ativo
         if (this.swipeController.isSwipeActive) {
             if (side === 'left') {
                 this.swipeController.leftMapLayer = newLayer;
@@ -180,12 +225,34 @@ export class MapController {
     }
 
     setupMouseCoordinates() {
+        const formatSelector = document.getElementById('formatSelector');
         this.map.on('mousemove', (e) => {
             const latLng = e.latlng;
-            document.getElementById('coords').textContent = `${latLng.lat.toFixed(5)}, ${latLng.lng.toFixed(5)}`;
+            let coordinatesText;
+    
+            // Verifica o formato selecionado
+            if (formatSelector.value === 'decimal') {
+                // Exibe as coordenadas em formato decimal
+                coordinatesText = `${latLng.lat.toFixed(5)}, ${latLng.lng.toFixed(5)}`;
+            } else {
+                // Converte para graus, minutos e segundos (GMS)
+                const latGMS = this.convertToGMS(latLng.lat);
+                const lngGMS = this.convertToGMS(latLng.lng);
+                coordinatesText = `${latGMS}, ${lngGMS}`;
+            }
+    
+            document.getElementById('coords').textContent = coordinatesText;
         });
     }
     
+    // Função para converter decimal para GMS
+    convertToGMS(coordinate) {
+        const degrees = Math.floor(coordinate);
+        const minutesFloat = (coordinate - degrees) * 60;
+        const minutes = Math.floor(minutesFloat);
+        const seconds = ((minutesFloat - minutes) * 60).toFixed(3);
+    
+        return `${degrees}° ${minutes}' ${seconds}"`;
+    }
+    
 }
-
-

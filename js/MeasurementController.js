@@ -20,7 +20,7 @@ export class MeasurementController {
 
     this.map.addControl(this.drawControl);
 
-    // Escuta o evento de criação de novo desenho
+    // Evento de criação de novo desenho
     this.map.on(L.Draw.Event.CREATED, (event) => this.handleDrawEvent(event));
   }
 
@@ -28,68 +28,49 @@ export class MeasurementController {
     const layer = event.layer;
     this.drawnItems.addLayer(layer);
 
-    // Calcular a medição apropriada para cada geometria
+    // Calcula medições apropriadas para cada tipo de geometria
     if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
-      console.log('Polígono ou Retângulo desenhado');
-      this.calculateAreaAndPerimeter(layer);  // Calcula área e perímetro
-      this.calculateAzimuthForPolygon(layer); // Calcula azimute para polígonos
+      this.calculateAreaAndPerimeter(layer);
+      this.calculateAzimuthForPolygon(layer);
     } else if (layer instanceof L.Polyline) {
-      console.log('Linha desenhada');
-      this.calculateDistance(layer);
-      this.calculateAzimuth(layer); // Calcula azimute para linhas
-    } else {
-      console.log('Tipo de camada não suportado');
+      this.calculateIncrementalDistance(layer);
+      this.calculateAzimuth(layer);
     }
 
-    // Adicionando hover para exibir os detalhes
+    // Adiciona hover para exibir detalhes
     layer.on('mouseover', () => this.showDetails(layer));
     layer.on('mouseout', () => this.map.closePopup());
   }
 
-  // Exibir os detalhes (distância, área, perímetro) no hover
   showDetails(layer) {
     let content = '';
-
-    if (layer.areaText) {
-      content += `Área: ${layer.areaText} <br>`;
-    }
-    if (layer.perimeterText) {
-      content += `Perímetro: ${layer.perimeterText} <br>`;
-    }
-    if (layer.distanceText) {
-      content += `Extensão: ${layer.distanceText} <br>`;
-    }
+    if (layer.areaText) content += `Área: ${layer.areaText} <br>`;
+    if (layer.perimeterText) content += `Perímetro: ${layer.perimeterText} <br>`;
+    if (layer.distanceText) content += `Extensão total: ${layer.distanceText} <br>`;
+    if (layer.azimuthText) content += `Azimute: ${layer.azimuthText} <br>`;
 
     if (content) {
       layer.bindPopup(content).openPopup();
     }
   }
 
-  // Cálculo do azimute para geometrias
   calculateAzimuth(layer) {
     const latlngs = layer.getLatLngs();
-    if (latlngs.length < 2) return; // O azimute precisa de ao menos dois pontos
-
-    const start = latlngs[0];
-    const end = latlngs[1];
-
-    const azimuth = this.getAzimuth(start, end);
-    console.log(`Azimute: ${azimuth.toFixed(2)}°`);
-
-    // Armazenar azimute para exibir no hover
-    layer.azimuthText = `${azimuth.toFixed(2)}°`;
-  }
-
-  calculateAzimuthForPolygon(layer) {
-    const latlngs = layer.getLatLngs()[0]; // Primeiro anel do polígono
     if (latlngs.length < 2) return;
 
     const start = latlngs[0];
     const end = latlngs[1];
-
     const azimuth = this.getAzimuth(start, end);
-    console.log(`Azimute do polígono: ${azimuth.toFixed(2)}°`);
+    layer.azimuthText = `${azimuth.toFixed(2)}°`;
+  }
 
+  calculateAzimuthForPolygon(layer) {
+    const latlngs = layer.getLatLngs()[0];
+    if (latlngs.length < 2) return;
+
+    const start = latlngs[0];
+    const end = latlngs[1];
+    const azimuth = this.getAzimuth(start, end);
     layer.azimuthText = `${azimuth.toFixed(2)}°`;
   }
 
@@ -106,62 +87,71 @@ export class MeasurementController {
     return (azimuth + 360) % 360;
   }
 
-  calculateDistance(layer) {
+  calculateIncrementalDistance(layer) {
     const latlngs = layer.getLatLngs();
+    let pointNameCounter = 1;
     let totalDistance = 0;
 
+    // Calcula a distância entre cada ponto e nomeia os pontos
     for (let i = 0; i < latlngs.length - 1; i++) {
-      totalDistance += latlngs[i].distanceTo(latlngs[i + 1]);
+      const startPoint = latlngs[i];
+      const endPoint = latlngs[i + 1];
+
+      const segmentDistance = startPoint.distanceTo(endPoint);
+      totalDistance += segmentDistance;
+
+      // Adiciona marcador com nome do ponto
+      L.marker(startPoint, { title: `P${pointNameCounter}` }).addTo(this.map)
+        .bindTooltip(`P${pointNameCounter}`).openTooltip();
+      pointNameCounter++;
+
+      // Exibe a distância entre os pontos
+      const midLatLng = this.getMidPoint(startPoint, endPoint);
+      L.marker(midLatLng, { icon: L.divIcon({ className: 'distance-label' }) })
+        .addTo(this.map)
+        .bindTooltip(`${segmentDistance >= 1000 ? (segmentDistance / 1000).toFixed(2) + ' km' : segmentDistance.toFixed(2) + ' m'}`, {
+          permanent: true,
+          className: 'distance-tooltip'
+        });
     }
 
+    // Nomeia e marca o último ponto
+    L.marker(latlngs[latlngs.length - 1], { title: `P${pointNameCounter}` }).addTo(this.map)
+      .bindTooltip(`P${pointNameCounter}`).openTooltip();
+
+    // Armazena o total da extensão para exibição no hover
     layer.distanceText = totalDistance >= 1000
       ? `${(totalDistance / 1000).toFixed(2)} km`
       : `${totalDistance.toFixed(2)} m`;
-
-    console.log('Distância da linha: ' + layer.distanceText);
   }
+
 
   calculateAreaAndPerimeter(layer) {
     const latlngs = layer.getLatLngs();
-
-    // Verifica se o polígono é válido para calcular a área
     if (latlngs.length > 0 && latlngs[0].length > 2) {
-        const closedPolygon = L.polygon(latlngs[0]);
-        const area = L.GeometryUtil.geodesicArea(closedPolygon.getLatLngs()[0]); // Área em metros quadrados
-        
-        // Ajuste na exibição da área
-        let areaText;
-        if (area >= 1000000) {
-            // Converte para quilômetros quadrados se a área for grande
-            areaText = `${(area / 1000000).toFixed(2)} km²`;
-        } else {
-            // Exibe a área em metros quadrados
-            areaText = `${area.toFixed(2)} m²`;
-        }
-        layer.areaText = areaText;
+      const closedPolygon = L.polygon(latlngs[0]);
+      const area = L.GeometryUtil.geodesicArea(closedPolygon.getLatLngs()[0]);
 
-        // Calcula o perímetro
-        let perimeter = 0;
-        for (let i = 0; i < latlngs[0].length; i++) {
-            const p1 = latlngs[0][i];
-            const p2 = latlngs[0][(i + 1) % latlngs[0].length];
-            perimeter += this.calculateDistanceBetweenPoints(p1, p2);
-        }
+      layer.areaText = area >= 1000000
+        ? `${(area / 1000000).toFixed(2)} km²`
+        : `${area.toFixed(2)} m²`;
 
-        // Ajuste na exibição do perímetro
-        layer.perimeterText = perimeter >= 1000
-            ? `${(perimeter / 1000).toFixed(2)} km`
-            : `${perimeter.toFixed(2)} m`;
+      let perimeter = 0;
+      for (let i = 0; i < latlngs[0].length; i++) {
+        const p1 = latlngs[0][i];
+        const p2 = latlngs[0][(i + 1) % latlngs[0].length];
+        perimeter += p1.distanceTo(p2);
+      }
 
-        // Exibição de resultados no console
-        console.log('Área: ' + layer.areaText);
-        console.log('Perímetro: ' + layer.perimeterText);
+      layer.perimeterText = perimeter >= 1000
+        ? `${(perimeter / 1000).toFixed(2)} km`
+        : `${perimeter.toFixed(2)} m`;
     } else {
-        alert('Desenhe um polígono com pelo menos três pontos para calcular a área.');
+      alert('Desenhe um polígono com pelo menos três pontos para calcular a área.');
     }
-}
+  }
 
-calculateDistanceBetweenPoints(p1, p2) {
-    return p1.distanceTo(p2);
-}
+  getMidPoint(p1, p2) {
+    return L.latLng((p1.lat + p2.lat) / 2, (p1.lng + p2.lng) / 2);
+  }
 }

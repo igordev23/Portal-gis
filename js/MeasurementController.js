@@ -218,17 +218,13 @@ export class MeasurementController {
             pointNameCounter++;
         }
 
-        // Exibe o marcador do último ponto
-        const lastPointMarker = L.marker(latlngs[0][latlngs[0].length - 1], { title: `P${pointNameCounter}` }).addTo(this.map)
-            .bindTooltip(`P${pointNameCounter}`).openTooltip();
-        this.pointMarkers.push(lastPointMarker);
-
         // Define o texto do perímetro
         layer.perimeterText = `${perimeter.toFixed(2)} ${this.currentUnit}`;
     } else {
         alert('Desenhe um polígono com pelo menos três pontos para calcular a área.');
     }
 }
+
 
   clearMarkersAndLabels() {
     this.pointMarkers.forEach(marker => this.map.removeLayer(marker));

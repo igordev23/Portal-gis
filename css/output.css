@@ -1793,6 +1793,24 @@ td i {
   margin-right: 8px; /* Espaçamento entre o ícone e o texto */
 }
 
+
+#scale-display {
+  position: absolute;
+  bottom: 50px; /* para não sobrepor o elemento de coordenadas */
+  left: 10px;
+  background: rgba(9, 16, 36, 0.8);
+  padding: 5px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  color: rgb(49, 140, 192);
+  font-size: 15px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  font-weight: bold;
+}
+
+
 /* Estilos para o botão de fechar da tabela */
 #legend-close-btn {
   background-color: #00b0fc; /* Azul escuro */

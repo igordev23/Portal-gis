@@ -64,6 +64,13 @@ export class MapController {
         this.setupPrintEvent();
 
         this.setupSearchEvent();
+
+
+        // Configura o evento de atualização de escala ao mudar o zoom
+        this.map.on('zoomend', () => this.updateScale());
+
+        // Exibe a escala inicial
+        this.updateScale();
     }
 
     setupPrintEvent() {
@@ -222,6 +229,22 @@ export class MapController {
 
                 suggestionsList.style.display = 'block';
             });
+    }
+
+
+    updateScale() {
+        const zoomLevel = this.map.getZoom();
+        const latitude = this.map.getCenter().lat;
+        
+        // Constante baseada em uma escala padrão para zoom 0
+        const EARTH_CIRCUMFERENCE = 40075017; // Circunferência da Terra em metros
+        const scale = (EARTH_CIRCUMFERENCE * Math.cos(latitude * Math.PI / 180)) / (Math.pow(2, zoomLevel) * 256);
+        
+        // Formatação da escala para exibição
+        const scaleDisplay = document.getElementById('scale-display');
+        if (scaleDisplay) {
+            scaleDisplay.textContent = `Escala: 1:${Math.round(scale)}`;
+        }
     }
 
     setupMouseCoordinates() {

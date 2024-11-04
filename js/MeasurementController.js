@@ -3,15 +3,19 @@ export class MeasurementController {
     this.map = map;
     this.drawnItems = new L.FeatureGroup();
     this.map.addLayer(this.drawnItems);
+    this.measurementBox = document.getElementById('measurement-box');
+    this.measurementContent = document.getElementById('measurement-content');
+    this.closeButton = document.getElementById('close-measurement-box');
 
-    // Controle de desenho
+    this.closeButton.addEventListener('click', () => this.hideMeasurementBox());
+
     this.drawControl = new L.Control.Draw({
       draw: {
         polyline: true,  // Desenho de linha
         polygon: true,   // Desenho de área
-        marker: false,   // Desenho de marcador
-        circle: false,   // Desenho de círculo
-        rectangle: true  // Desenho de retângulo
+        marker: false,
+        circle: false,
+        rectangle: true
       },
       edit: {
         featureGroup: this.drawnItems
@@ -20,15 +24,32 @@ export class MeasurementController {
 
     this.map.addControl(this.drawControl);
 
-    // Evento de criação de novo desenho
     this.map.on(L.Draw.Event.CREATED, (event) => this.handleDrawEvent(event));
+    this.map.on(L.Draw.Event.EDITED, (event) => this.handleEditEvent(event));
+    this.map.on(L.Draw.Event.DELETED, () => this.clearMarkersAndLabels());
+
+    this.pointMarkers = [];
+    this.distanceLabels = [];
   }
 
   handleDrawEvent(event) {
     const layer = event.layer;
     this.drawnItems.addLayer(layer);
+    this.updateMeasurements(layer);
+    layer.on('click', () => this.showDetails(layer));
+    this.showDetails(layer);
+  }
 
-    // Calcula medições apropriadas para cada tipo de geometria
+  handleEditEvent(event) {
+    // Recalcula as medições para cada layer editado
+    event.layers.eachLayer(layer => {
+      this.clearMarkersAndLabels();
+      this.updateMeasurements(layer);
+      this.showDetails(layer);
+    });
+  }
+
+  updateMeasurements(layer) {
     if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
       this.calculateAreaAndPerimeter(layer);
       this.calculateAzimuthForPolygon(layer);
@@ -36,10 +57,6 @@ export class MeasurementController {
       this.calculateIncrementalDistance(layer);
       this.calculateAzimuth(layer);
     }
-
-    // Adiciona hover para exibir detalhes
-    layer.on('mouseover', () => this.showDetails(layer));
-    layer.on('mouseout', () => this.map.closePopup());
   }
 
   showDetails(layer) {
@@ -49,9 +66,16 @@ export class MeasurementController {
     if (layer.distanceText) content += `Extensão total: ${layer.distanceText} <br>`;
     if (layer.azimuthText) content += `Azimute: ${layer.azimuthText} <br>`;
 
-    if (content) {
-      layer.bindPopup(content).openPopup();
-    }
+    this.measurementContent.innerHTML = content ? content : 'Nenhuma medida disponível.';
+    this.showMeasurementBox();
+  }
+
+  showMeasurementBox() {
+    this.measurementBox.classList.remove('hidden');
+  }
+
+  hideMeasurementBox() {
+    this.measurementBox.classList.add('hidden');
   }
 
   calculateAzimuth(layer) {
@@ -92,7 +116,6 @@ export class MeasurementController {
     let pointNameCounter = 1;
     let totalDistance = 0;
 
-    // Calcula a distância entre cada ponto e nomeia os pontos
     for (let i = 0; i < latlngs.length - 1; i++) {
       const startPoint = latlngs[i];
       const endPoint = latlngs[i + 1];
@@ -100,55 +123,90 @@ export class MeasurementController {
       const segmentDistance = startPoint.distanceTo(endPoint);
       totalDistance += segmentDistance;
 
-      // Adiciona marcador com nome do ponto
-      L.marker(startPoint, { title: `P${pointNameCounter}` }).addTo(this.map)
+      const pointMarker = L.marker(startPoint, { title: `P${pointNameCounter}` }).addTo(this.map)
         .bindTooltip(`P${pointNameCounter}`).openTooltip();
-      pointNameCounter++;
+      this.pointMarkers.push(pointMarker);
 
-      // Exibe a distância entre os pontos
       const midLatLng = this.getMidPoint(startPoint, endPoint);
-      L.marker(midLatLng, { icon: L.divIcon({ className: 'distance-label' }) })
+      const distanceLabel = L.marker(midLatLng, { icon: L.divIcon({ className: 'distance-label' }) })
         .addTo(this.map)
         .bindTooltip(`${segmentDistance >= 1000 ? (segmentDistance / 1000).toFixed(2) + ' km' : segmentDistance.toFixed(2) + ' m'}`, {
           permanent: true,
           className: 'distance-tooltip'
         });
+      this.distanceLabels.push(distanceLabel);
+
+      pointNameCounter++;
     }
 
-    // Nomeia e marca o último ponto
-    L.marker(latlngs[latlngs.length - 1], { title: `P${pointNameCounter}` }).addTo(this.map)
+    const lastPointMarker = L.marker(latlngs[latlngs.length - 1], { title: `P${pointNameCounter}` }).addTo(this.map)
       .bindTooltip(`P${pointNameCounter}`).openTooltip();
+    this.pointMarkers.push(lastPointMarker);
 
-    // Armazena o total da extensão para exibição no hover
     layer.distanceText = totalDistance >= 1000
       ? `${(totalDistance / 1000).toFixed(2)} km`
       : `${totalDistance.toFixed(2)} m`;
   }
 
-
   calculateAreaAndPerimeter(layer) {
     const latlngs = layer.getLatLngs();
     if (latlngs.length > 0 && latlngs[0].length > 2) {
-      const closedPolygon = L.polygon(latlngs[0]);
-      const area = L.GeometryUtil.geodesicArea(closedPolygon.getLatLngs()[0]);
+        const closedPolygon = L.polygon(latlngs[0]);
+        const area = L.GeometryUtil.geodesicArea(closedPolygon.getLatLngs()[0]);
 
-      layer.areaText = area >= 1000000
-        ? `${(area / 1000000).toFixed(2)} km²`
-        : `${area.toFixed(2)} m²`;
+        layer.areaText = area >= 1000000
+            ? `${(area / 1000000).toFixed(2)} km²`
+            : `${area.toFixed(2)} m²`;
 
-      let perimeter = 0;
-      for (let i = 0; i < latlngs[0].length; i++) {
-        const p1 = latlngs[0][i];
-        const p2 = latlngs[0][(i + 1) % latlngs[0].length];
-        perimeter += p1.distanceTo(p2);
-      }
+        let perimeter = 0;
+        let pointNameCounter = 1;
 
-      layer.perimeterText = perimeter >= 1000
-        ? `${(perimeter / 1000).toFixed(2)} km`
-        : `${perimeter.toFixed(2)} m`;
+        // Adiciona marcadores e etiquetas de distância entre cada ponto
+        for (let i = 0; i < latlngs[0].length; i++) {
+            const p1 = latlngs[0][i];
+            const p2 = latlngs[0][(i + 1) % latlngs[0].length];
+
+            // Calcula a distância entre os pontos
+            const segmentDistance = p1.distanceTo(p2);
+            perimeter += segmentDistance;
+
+            // Cria o marcador do ponto atual
+            const pointMarker = L.marker(p1, { title: `P${pointNameCounter}` }).addTo(this.map)
+                .bindTooltip(`P${pointNameCounter}`).openTooltip();
+            this.pointMarkers.push(pointMarker);
+
+            // Calcula o ponto médio para a etiqueta de distância
+            const midLatLng = this.getMidPoint(p1, p2);
+            const distanceLabel = L.marker(midLatLng, { icon: L.divIcon({ className: 'distance-label' }) })
+                .addTo(this.map)
+                .bindTooltip(`${segmentDistance >= 1000 ? (segmentDistance / 1000).toFixed(2) + ' km' : segmentDistance.toFixed(2) + ' m'}`, {
+                    permanent: true,
+                    className: 'distance-tooltip'
+                });
+            this.distanceLabels.push(distanceLabel);
+
+            pointNameCounter++;
+        }
+
+        // Exibe o marcador do último ponto
+        const lastPointMarker = L.marker(latlngs[0][latlngs[0].length - 1], { title: `P${pointNameCounter}` }).addTo(this.map)
+            .bindTooltip(`P${pointNameCounter}`).openTooltip();
+        this.pointMarkers.push(lastPointMarker);
+
+        layer.perimeterText = perimeter >= 1000
+            ? `${(perimeter / 1000).toFixed(2)} km`
+            : `${perimeter.toFixed(2)} m`;
     } else {
-      alert('Desenhe um polígono com pelo menos três pontos para calcular a área.');
+        alert('Desenhe um polígono com pelo menos três pontos para calcular a área.');
     }
+}
+
+
+  clearMarkersAndLabels() {
+    this.pointMarkers.forEach(marker => this.map.removeLayer(marker));
+    this.distanceLabels.forEach(label => this.map.removeLayer(label));
+    this.pointMarkers = [];
+    this.distanceLabels = [];
   }
 
   getMidPoint(p1, p2) {

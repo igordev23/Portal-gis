@@ -17,7 +17,7 @@
   .map-button {
     position: absolute;
     z-index: 1000; /* Garantir que os botões fiquem acima do mapa */
-    background-color: #1E40AF; /* Cor de fundo azul */
+    background-color: #00b0fc; /* Cor de fundo azul */
     padding: 10px;
     border-radius: 50%;
     box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
@@ -38,7 +38,7 @@
 
 /* Barra de título da janela */
 #legend-header {
-    background-color: #0078D7; /* Cor azul do estilo Windows */
+    background-color: #00b0fc; /* Cor azul do estilo Windows */
     color: white; /* Texto branco */
     padding: 10px; /* Espaçamento interno */
     font-size: 16px; /* Tamanho da fonte do título */
@@ -96,7 +96,7 @@
 
 
 #map-provider-header {
-  background-color: #0078D7;
+  background-color: #00b0fc;
   color: white;
   padding: 10px;
   font-size: 16px;
@@ -148,7 +148,7 @@
 
 
 .header {
-  background: linear-gradient(to right, #1e40af, #3b82f6); /* Gradiente azul */
+  background: linear-gradient(to right, #00b0fc, #3b82f6); /* Gradiente azul */
   color: white; /* Texto branco */
   padding: 16px; /* Espaçamento interno */
   display: flex; /* Flexbox para layout */
@@ -207,7 +207,7 @@
 }
 
 .search-button:hover {
-  background: #1e40af; /* Azul mais claro ao passar o mouse */
+  background: #00b0fc; /* Azul mais claro ao passar o mouse */
 }
 
 /* Estilos responsivos */
@@ -248,7 +248,7 @@
   .map-button {
     position: absolute;
     z-index: 1000; /* Garantir que os botões fiquem acima do mapa */
-    background-color: #1E40AF; /* Cor de fundo azul */
+    background-color: #00b0fc; /* Cor de fundo azul */
     padding: 10px;
     border-radius: 50%;
     box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.2);
@@ -305,7 +305,7 @@
 
 /* Barra de título da janela */
 #legend-header {
-    background-color: #0078D7; /* Cor azul do estilo Windows */
+    background-color: #00b0fc; /* Cor azul do estilo Windows */
     color: white; /* Texto branco */
     padding: 10px; /* Espaçamento interno */
     font-size: 16px; /* Tamanho da fonte do título */
@@ -377,7 +377,7 @@
 
 
 #map-provider-header {
-  background-color: #0078D7;
+  background-color: #00b0fc;
   color: white;
   padding: 10px;
   font-size: 16px;
@@ -429,7 +429,7 @@
 
 
 .header {
-  background: linear-gradient(to right, #1e40af, #3b82f6); /* Gradiente azul */
+  background: linear-gradient(to right, #00b0fc, #3b82f6); /* Gradiente azul */
   color: white; /* Texto branco */
   padding: 16px; /* Espaçamento interno */
   display: flex; /* Flexbox para layout */
@@ -488,7 +488,7 @@
 }
 
 .search-button:hover {
-  background: #1e40af; /* Azul mais claro ao passar o mouse */
+  background: #00b0fc; /* Azul mais claro ao passar o mouse */
 }
 
 /* Estilos responsivos */
@@ -557,7 +557,7 @@
 #selector h3 {
   margin: 0;
   font-size: 16px;
-  color: #0078D7; /* Azul típico das janelas no Windows */
+  color: #00b0fc; /* Azul típico das janelas no Windows */
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding-bottom: 8px;
   margin-bottom: 12px;
@@ -574,7 +574,7 @@
 }
 
 #camadas-header {
-  background-color: #0078D7; /* Azul característico do Windows */
+  background-color: #00b0fc; /* Azul característico do Windows */
   color: white; /* Texto branco */
   padding: 10px;
   font-size: 16px;
@@ -619,7 +619,7 @@
 /* Estilo para itens selecionados */
 #selector input[type="checkbox"]:checked + label {
   font-weight: bold;
-  color: #0078D7; /* Azul característico para os itens selecionados */
+  color: #00b0fc; /* Azul característico para os itens selecionados */
 }
 
 /* Exibição suave com animação */
@@ -911,7 +911,7 @@ body {
 
 /* Estilo geral para o ícone do marcador */
 .leaflet-marker-icon {
-  background-color: #0078D7; /* Cor de fundo azul */
+  background-color: #00b0fc; /* Cor de fundo azul */
   border-radius: 50%; /* Faz o ícone ser um círculo */
   border: 2px solid white; /* Borda branca ao redor do círculo */
   width: 24px; /* Largura reduzida do ícone */
@@ -1710,6 +1710,21 @@ video {
 }
 
 
+#measurement-box {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background-color: white;
+  padding: 10px;
+  border: 1px solid #ccc;
+  z-index: 1000;
+}
+
+.hidden {
+  display: none;
+}
+
+
 
 /* Container principal */
 .container {
@@ -1738,7 +1753,7 @@ table {
 
 /* Cabeçalho da tabela */
 thead {
-  background-color: #1E40AF; /* Azul escuro */
+  background-color: #00b0fc; /* Azul escuro */
   color: white;
 }
 
@@ -1764,7 +1779,7 @@ tbody td {
 
 /* Última linha sem borda */
 tbody tr:last-of-type {
-  border-bottom: 2px solid #1E40AF; /* Borda final em azul */
+  border-bottom: 2px solid #00b0fc; /* Borda final em azul */
 }
 
 /* Estilo ao passar o mouse sobre uma linha */
@@ -1780,7 +1795,7 @@ td i {
 
 /* Estilos para o botão de fechar da tabela */
 #legend-close-btn {
-  background-color: #1E40AF; /* Azul escuro */
+  background-color: #00b0fc; /* Azul escuro */
   color: white;
   border: none;
   padding: 8px 12px; /* Ajuste do padding */
@@ -1842,7 +1857,7 @@ td i {
 #selector h3 {
   margin: 0;
   font-size: 16px;
-  color: #0078D7; /* Azul típico das janelas no Windows */
+  color: #00b0fc; /* Azul típico das janelas no Windows */
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   padding-bottom: 8px;
   margin-bottom: 12px;
@@ -1859,7 +1874,7 @@ td i {
 }
 
 #camadas-header {
-  background-color: #0078D7; /* Azul característico do Windows */
+  background-color: #00b0fc; /* Azul característico do Windows */
   color: white; /* Texto branco */
   padding: 10px;
   font-size: 16px;
@@ -1904,7 +1919,7 @@ td i {
 /* Estilo para itens selecionados */
 #selector input[type="checkbox"]:checked + label {
   font-weight: bold;
-  color: #0078D7; /* Azul característico para os itens selecionados */
+  color: #00b0fc; /* Azul característico para os itens selecionados */
 }
 
 /* Exibição suave com animação */
@@ -2059,7 +2074,7 @@ html, body {
   position: absolute;
   top: 150px; /* Ajuste a posição */
   left: 2px; /* Posição mais à esquerda */
-  background-color: #4947f7;
+  background-color: #00b0fc;
   border: 1px solid #ddd;
   border-radius: 12px;
   
@@ -2069,7 +2084,7 @@ html, body {
 
 /* Estilo para os botões da barra de ferramentas */
 .leaflet-draw-toolbar a {
-  background-color: #0078D7;
+  background-color: #00b0fc;
   border: none;
   border-radius: 50%;
   width: 45px;
@@ -2238,7 +2253,7 @@ body {
 
 /* Estilo geral para o ícone do marcador */
 .leaflet-marker-icon {
-  background-color: #0078D7; /* Cor de fundo azul */
+  background-color: #00b0fc; /* Cor de fundo azul */
   border-radius: 50%; /* Faz o ícone ser um círculo */
   border: 2px solid white; /* Borda branca ao redor do círculo */
   width: 24px; /* Largura reduzida do ícone */

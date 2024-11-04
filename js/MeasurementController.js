@@ -7,9 +7,14 @@ export class MeasurementController {
     this.measurementContent = document.getElementById('measurement-content');
     this.closeButton = document.getElementById('close-measurement-box');
     this.unitSelector = document.getElementById('unit-selector');
+    this.selectedLayer = null;
 
     this.closeButton.addEventListener('click', () => this.hideMeasurementBox());
-    this.unitSelector.addEventListener('change', () => this.updateUnit());
+    this.unitSelector.addEventListener('change', () => {
+      if (this.selectedLayer) {
+        this.updateUnit(this.selectedLayer);
+      }
+    });
 
     this.drawControl = new L.Control.Draw({
       draw: {
@@ -25,7 +30,6 @@ export class MeasurementController {
     });
 
     this.map.addControl(this.drawControl);
-
     this.map.on(L.Draw.Event.CREATED, (event) => this.handleDrawEvent(event));
     this.map.on(L.Draw.Event.EDITED, (event) => this.handleEditEvent(event));
     this.map.on(L.Draw.Event.DELETED, () => this.clearMarkersAndLabels());
@@ -37,9 +41,11 @@ export class MeasurementController {
 
   handleDrawEvent(event) {
     const layer = event.layer;
+    this.clearSelection();
+    this.selectedLayer = layer;
     this.drawnItems.addLayer(layer);
     this.updateMeasurements(layer);
-    layer.on('click', () => this.showDetails(layer));
+    layer.on('click', () => this.selectLayer(layer));
     this.showDetails(layer);
   }
 
@@ -51,12 +57,26 @@ export class MeasurementController {
     });
   }
 
-  updateUnit() {
-    this.currentUnit = this.unitSelector.value;
+  selectLayer(layer) {
+    this.clearSelection();
+    this.selectedLayer = layer;
+    layer.selected = true;
+    this.showDetails(layer);
+  }
+
+  clearSelection() {
     this.drawnItems.eachLayer(layer => {
-      this.updateMeasurements(layer);
-      this.showDetails(layer);
+      layer.selected = false;
     });
+    this.selectedLayer = null;
+  }
+
+  updateUnit(selectedLayer) {
+    this.currentUnit = this.unitSelector.value;
+    if (selectedLayer) {
+      this.updateMeasurements(selectedLayer);
+      this.showDetails(selectedLayer);
+    }
   }
 
   updateMeasurements(layer) {
@@ -87,7 +107,6 @@ export class MeasurementController {
   hideMeasurementBox() {
     this.measurementBox.classList.add('hidden');
   }
-
 
   calculateAzimuth(layer) {
     const latlngs = layer.getLatLngs();

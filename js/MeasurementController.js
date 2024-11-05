@@ -44,6 +44,7 @@ export class MeasurementController {
     this.clearSelection();
     this.selectedLayer = layer;
     this.drawnItems.addLayer(layer);
+    this.updateUnitOptions(layer); // Atualiza as opções de unidade com base no tipo de camada
     this.updateMeasurements(layer);
     layer.on('click', () => this.selectLayer(layer));
     this.showDetails(layer);
@@ -61,6 +62,7 @@ export class MeasurementController {
     this.clearSelection();
     this.selectedLayer = layer;
     layer.selected = true;
+    this.updateUnitOptions(layer); // Atualiza as opções de unidade ao selecionar uma camada
     this.showDetails(layer);
   }
 
@@ -70,32 +72,74 @@ export class MeasurementController {
     });
     this.selectedLayer = null;
   }
+  updateUnitOptions(layer) {
+    // Limpa as opções de unidade existentes
+    this.unitSelector.innerHTML = '';
 
-  updateUnit(selectedLayer) {
-    this.currentUnit = this.unitSelector.value;
-    if (selectedLayer) {
-      this.updateMeasurements(selectedLayer);
-      this.showDetails(selectedLayer);
+    if (layer instanceof L.Polyline) {
+        // Apenas unidades lineares para linhas (metros e quilômetros)
+        this.unitSelector.innerHTML += `
+            <option value="m">Metros</option>
+            <option value="km">Quilômetros</option>
+             
+        `;
+    } if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
+        // Apenas unidades de área para polígonos e retângulos
+        this.unitSelector.innerHTML += `
+            
+
+             <option value="ha">Hectares</option>
+        `;
     }
-  }
 
-  updateMeasurements(layer) {
-    if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
+    // Define a unidade padrão como a primeira opção disponível
+    this.currentUnit = this.unitSelector.value;
+}
+
+
+updateUnit(selectedLayer) {
+  // Verifica se uma camada foi selecionada antes de limpar as medições anteriores
+  if (selectedLayer) {
+    // Limpa os rótulos das medições anteriores
+    this.clearPreviousMeasurements();
+    
+    // Atualiza a unidade atual com o valor selecionado no seletor de unidade
+    this.currentUnit = this.unitSelector.value;
+
+    // Atualiza as medições e mostra os detalhes da nova unidade
+    this.updateMeasurements(selectedLayer);
+    this.showDetails(selectedLayer);
+  }
+}
+
+
+clearPreviousMeasurements() {
+  // Verifica se o array de rótulos de distância existe
+  if (this.distanceLabels && this.distanceLabels.length > 0) {
+    // Remove cada rótulo de distância do mapa
+    this.distanceLabels.forEach(label => this.map.removeLayer(label));
+    // Esvazia o array de rótulos de distância
+    this.distanceLabels = [];
+  }
+}
+
+updateMeasurements(layer) {
+  if (layer instanceof L.Polygon || layer instanceof L.Rectangle) {
       this.calculateAreaAndPerimeter(layer);
       this.calculateAzimuthForPolygon(layer);
-    } else if (layer instanceof L.Polyline) {
+  } else if (layer instanceof L.Polyline) {
       this.calculateIncrementalDistance(layer);
       this.calculateAzimuth(layer);
-    }
   }
+}
+
 
   showDetails(layer) {
     let content = '';
     if (layer.areaText) content += `Área: ${layer.areaText} <br>`;
     if (layer.perimeterText) content += `Perímetro: ${layer.perimeterText} <br>`;
     if (layer.distanceText) content += `Extensão total: ${layer.distanceText} <br>`;
-    if (layer.azimuthText) content += `Azimute: ${layer.azimuthText} <br>`;
-
+    
     this.measurementContent.innerHTML = content ? content : 'Nenhuma medida disponível.';
     this.showMeasurementBox();
   }
@@ -238,5 +282,5 @@ export class MeasurementController {
       (latlng1.lat + latlng2.lat) / 2,
       (latlng1.lng + latlng2.lng) / 2
     );
-  }
-}
+
+}}

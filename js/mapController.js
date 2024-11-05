@@ -249,18 +249,25 @@ export class MapController {
 
     setupMouseCoordinates() {
         const formatSelector = document.getElementById('formatSelector');
+        
         this.map.on('mousemove', (e) => {
             const latLng = e.latlng;
             let coordinatesText;
     
             // Verifica o formato selecionado
             if (formatSelector.value === 'decimal') {
-                // Exibe as coordenadas em formato decimal
-                coordinatesText = `${latLng.lat.toFixed(5)}, ${latLng.lng.toFixed(5)}`;
+                // Exibe as coordenadas em formato decimal sem o sinal e com "S" e "O"
+                const latitude = `${Math.abs(latLng.lat).toFixed(5)} S`;
+                const longitude = `${Math.abs(latLng.lng).toFixed(5)} O`;
+                coordinatesText = `${latitude}, ${longitude}`;
+            } else if (formatSelector.value === 'norte_leste') {
+                // Converte para coordenadas Norte/Leste (UTM SIRGAS 2000)
+                const utmCoords = this.convertToUTM_SIRGAS(latLng.lat, latLng.lng);
+                coordinatesText = `${utmCoords.northing.toFixed(3)} N, ${utmCoords.easting.toFixed(3)} E`;
             } else {
                 // Converte para graus, minutos e segundos (GMS)
-                const latGMS = this.convertToGMS(latLng.lat);
-                const lngGMS = this.convertToGMS(latLng.lng);
+                const latGMS = this.convertToGMS(latLng.lat) + ' S';
+                const lngGMS = this.convertToGMS(latLng.lng) + ' O';
                 coordinatesText = `${latGMS}, ${lngGMS}`;
             }
     
@@ -270,12 +277,23 @@ export class MapController {
     
     // Função para converter decimal para GMS
     convertToGMS(coordinate) {
-        const degrees = Math.floor(coordinate);
-        const minutesFloat = (coordinate - degrees) * 60;
+        const degrees = Math.floor(Math.abs(coordinate));
+        const minutesFloat = (Math.abs(coordinate) - degrees) * 60;
         const minutes = Math.floor(minutesFloat);
         const seconds = ((minutesFloat - minutes) * 60).toFixed(3);
     
         return `${degrees}° ${minutes}' ${seconds}"`;
     }
     
-}
+    // Função para converter coordenadas para UTM com SIRGAS 2000
+    convertToUTM_SIRGAS(lat, lng) {
+        // Usa o sistema proj4 para conversão (precisa da biblioteca proj4js)
+        const proj4 = window.proj4;
+    
+        // Define a projeção UTM com SIRGAS 2000
+        const utmZone = `+proj=utm +zone=${Math.floor((lng + 180) / 6) + 1} +south +datum=SIRGAS2000 +units=m +no_defs`;
+        const utmCoords = proj4('WGS84', utmZone, [lng, lat]);
+        return { northing: utmCoords[1], easting: utmCoords[0] };
+    }
+    
+}    

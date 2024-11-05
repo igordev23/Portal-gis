@@ -169,30 +169,33 @@
 <div id="scale-display">Escala: 1:1000</div>
   
 
-  <div id="coordinates" style="
-  position: absolute; 
-  bottom: 10px; 
-  left: 10px; 
-  background: rgba(9, 16, 36, 0.8); 
-  padding: 5px 10px; 
-  border-radius: 8px; 
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); 
-  color: rgb(49, 140, 192); 
-  font-size: 15px; 
-  z-index: 1000;
-  display: flex; 
-  align-items: center;
-  justify-content: space-between;">
-  <span>Coordenadas:</span> 
-  <span id="coords" style="margin-left: 5px; font-weight: bold;">0, 0</span>
-  <select id="formatSelector" style="margin-left: 10px;">
-      <option value="decimal">Decimal</option>
-      <option value="utm">UTM</option>
-  </select>
+<div id="coordinates" style="
+position: absolute; 
+bottom: 10px; 
+left: 10px; 
+background: rgba(9, 16, 36, 0.8); 
+padding: 5px 10px; 
+border-radius: 8px; 
+box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); 
+color: rgb(49, 140, 192); 
+font-size: 15px; 
+z-index: 1000;
+display: flex; 
+align-items: center;
+justify-content: space-between;">
+<span>Coordenadas:</span> 
+<span id="coords" style="margin-left: 5px; font-weight: bold;">0, 0</span>
+<select id="formatSelector" style="margin-left: 10px;">
+  
+    <option value="utm">Geografica</option>
+    <option value="norte_leste">UTM</option>
+</select>
 </div>
 
 
 
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.6.2/proj4.js"></script>
 
 <script src="https://unpkg.com/leaflet-swipe/leaflet-swipe.js"></script>
 

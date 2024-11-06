@@ -67,11 +67,46 @@ export class MeasurementController {
   }
 
   clearSelection() {
-    this.drawnItems.eachLayer(layer => {
-      layer.selected = false;
-    });
-    this.selectedLayer = null;
-  }
+    if (this.selectedLayer) {
+        // Limpa a seleção na camada selecionada, se houver
+        this.selectedLayer.selected = false;
+
+        // Remove apenas os rótulos de distância e marcadores associados à camada selecionada
+        this.clearMarkersAndLabelsForLayer(this.selectedLayer);
+        
+        // Desmarca a camada selecionada
+        this.selectedLayer = null;
+    }
+}
+
+clearMarkersAndLabelsForLayer(layer) {
+    // Remove os rótulos de distância e marcadores específicos para a camada dada
+    if (layer.distanceLabels) {
+        layer.distanceLabels.forEach(label => this.map.removeLayer(label));
+        layer.distanceLabels = [];
+    }
+    if (layer.pointMarkers) {
+        layer.pointMarkers.forEach(marker => this.map.removeLayer(marker));
+        layer.pointMarkers = [];
+    }
+}
+
+deleteSelectedLayer() {
+    if (this.selectedLayer) {
+        // Remove a camada selecionada do grupo de camadas desenhadas
+        this.drawnItems.removeLayer(this.selectedLayer);
+
+        // Remove os rótulos e marcadores associados à camada selecionada
+        this.clearMarkersAndLabelsForLayer(this.selectedLayer);
+        
+        // Limpa a seleção
+        this.selectedLayer = null;
+        this.hideMeasurementBox();
+    }
+}
+
+
+
   updateUnitOptions(layer) {
     // Limpa as opções de unidade existentes
     this.unitSelector.innerHTML = '';
@@ -185,71 +220,72 @@ updateMeasurements(layer) {
     return (azimuth + 360) % 360;
   }
 
+
   calculateIncrementalDistance(layer) {
     const latlngs = layer.getLatLngs();
     let totalDistance = 0;
     let pointNameCounter = 1;
 
     for (let i = 0; i < latlngs.length - 1; i++) {
-      const startPoint = latlngs[i];
-      const endPoint = latlngs[i + 1];
-      let segmentDistance = startPoint.distanceTo(endPoint);
+        const startPoint = latlngs[i];
+        const endPoint = latlngs[i + 1];
+        let segmentDistance = startPoint.distanceTo(endPoint);
 
-      if (this.currentUnit === 'km') segmentDistance /= 1000;
-      totalDistance += segmentDistance;
+        if (this.currentUnit === 'km') segmentDistance /= 1000;
+        totalDistance += segmentDistance;
 
-      const pointMarker = L.marker(startPoint, { title: `P${pointNameCounter}` }).addTo(this.map)
-      .bindTooltip(`P${pointNameCounter}`).openTooltip();
-      this.pointMarkers.push(pointMarker);
+        // Cria o marcador do ponto e adiciona o evento de clique
+        const pointMarker = L.marker(startPoint, { title: `P${pointNameCounter}` }).addTo(this.map)
+            .bindTooltip(`P${pointNameCounter}`).openTooltip()
+            .on('click', () => this.copyCoordinatesFormatted(startPoint)); // Evento de clique para copiar coordenadas
+        this.pointMarkers.push(pointMarker);
 
-      const midLatLng = this.getMidPoint(startPoint, endPoint);
-      const distanceLabel = L.marker(midLatLng, { icon: L.divIcon({ className: 'distance-label' }) })
-        .addTo(this.map)
-        .bindTooltip(`${segmentDistance.toFixed(2)} ${this.currentUnit}`, {
-          permanent: true,
-          className: 'distance-tooltip'
-        });
-      this.distanceLabels.push(distanceLabel);
-      pointNameCounter++;
+        const midLatLng = this.getMidPoint(startPoint, endPoint);
+        const distanceLabel = L.marker(midLatLng, { icon: L.divIcon({ className: 'distance-label' }) })
+            .addTo(this.map)
+            .bindTooltip(`${segmentDistance.toFixed(2)} ${this.currentUnit}`, {
+                permanent: true,
+                className: 'distance-tooltip'
+            });
+        this.distanceLabels.push(distanceLabel);
+        pointNameCounter++;
     }
     const lastPointMarker = L.marker(latlngs[latlngs.length - 1], { title: `P${pointNameCounter}` }).addTo(this.map)
-      .bindTooltip(`P${pointNameCounter}`).openTooltip();
+        .bindTooltip(`P${pointNameCounter}`).openTooltip()
+        .on('click', () => this.copyCoordinatesFormatted(latlngs[latlngs.length - 1]));
     this.pointMarkers.push(lastPointMarker);
     layer.distanceText = `${totalDistance.toFixed(2)} ${this.currentUnit}`;
-  }
+}
 
-  calculateAreaAndPerimeter(layer) {
+calculateAreaAndPerimeter(layer) {
     const latlngs = layer.getLatLngs();
     if (latlngs.length > 0 && latlngs[0].length > 2) {
         const closedPolygon = L.polygon(latlngs[0]);
         let area = L.GeometryUtil.geodesicArea(closedPolygon.getLatLngs()[0]);
         let perimeter = 0;
-        let pointNameCounter = 1; // Inicializa o contador de pontos
+        let pointNameCounter = 1;
 
-        // Converte área para a unidade correta
         if (this.currentUnit === 'km') {
-            area /= 1000000; // Converte de m² para km²
+            area /= 1000000;
         }
         layer.areaText = `${area.toFixed(2)} ${this.currentUnit === 'km' ? 'km²' : 'm²'}`;
 
-        // Calcula o perímetro e exibe as distâncias
         for (let i = 0; i < latlngs[0].length; i++) {
             const p1 = latlngs[0][i];
             const p2 = latlngs[0][(i + 1) % latlngs[0].length];
             let segmentDistance = p1.distanceTo(p2);
 
-            // Converte a distância para a unidade correta
             if (this.currentUnit === 'km') {
-                segmentDistance /= 1000; // Converte de m para km
+                segmentDistance /= 1000;
             }
             perimeter += segmentDistance;
 
-            // Cria o marcador do ponto atual
+            // Cria o marcador do ponto e adiciona o evento de clique
             const pointMarker = L.marker(p1, { title: `P${pointNameCounter}` }).addTo(this.map)
-                .bindTooltip(`P${pointNameCounter}`).openTooltip();
+                .bindTooltip(`P${pointNameCounter}`).openTooltip()
+                .on('click', () => this.copyCoordinatesFormatted(p1));
             this.pointMarkers.push(pointMarker);
 
-            // Cria o marcador de distância no ponto médio
             const midLatLng = this.getMidPoint(p1, p2);
             const distanceLabel = L.marker(midLatLng, { icon: L.divIcon({ className: 'distance-label' }) })
                 .addTo(this.map)
@@ -262,12 +298,43 @@ updateMeasurements(layer) {
             pointNameCounter++;
         }
 
-        // Define o texto do perímetro
         layer.perimeterText = `${perimeter.toFixed(2)} ${this.currentUnit}`;
     } else {
         alert('Desenhe um polígono com pelo menos três pontos para calcular a área.');
     }
 }
+
+// Função para copiar coordenadas formatadas
+copyCoordinatesFormatted(latlng) {
+    const formatCoordinate = (coord, isLat) => {
+        const hemisphere = isLat ? (coord >= 0 ? 'N' : 'S') : (coord >= 0 ? 'E' : 'O');
+        const absCoord = Math.abs(coord);
+        const degrees = Math.floor(absCoord);
+        const minutes = Math.floor((absCoord - degrees) * 60);
+        const seconds = ((absCoord - degrees - minutes / 60) * 3600).toFixed(3);
+        return `${degrees}° ${minutes}' ${seconds}" ${hemisphere}`;
+    };
+
+    const formattedLat = formatCoordinate(latlng.lat, true);
+    const formattedLng = formatCoordinate(latlng.lng, false);
+    const coordsText = `Coordenadas: ${formattedLat}, ${formattedLng}`;
+
+    navigator.clipboard.writeText(coordsText)
+        .then(() => alert(`Coordenadas copiadas: ${coordsText}`))
+        .catch(err => alert('Falha ao copiar as coordenadas: ' + err));
+}
+
+
+
+
+// Função para copiar coordenadas
+copyCoordinates(latlng) {
+    const coordsText = `Lat: ${latlng.lat.toFixed(6)}, Lng: ${latlng.lng.toFixed(6)}`;
+    navigator.clipboard.writeText(coordsText)
+        .then(() => alert(`Coordenadas copiadas: ${coordsText}`))
+        .catch(err => alert('Falha ao copiar as coordenadas: ' + err));
+}
+
 
 
   clearMarkersAndLabels() {

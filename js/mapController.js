@@ -69,8 +69,16 @@ export class MapController {
         // Configura o evento de atualização de escala ao mudar o zoom
         this.map.on('zoomend', () => this.updateScale());
 
-        // Exibe a escala inicial
+        // Observador para sincronizar o zoom e a escala ao modificar o zoom manualmente no mapa
+        this.map.on('zoomend', () => {
+            this.updateScale(); // Atualiza a escala exibida sempre que o zoom do mapa for alterado manualmente
+        });
+
         this.updateScale();
+        // Evento para atualizar o zoom ao selecionar uma nova escala
+        document.getElementById('scale-selector').addEventListener('change', () => {
+            this.setScaleByDropdown();
+        });
     }
 
     setupPrintEvent() {
@@ -79,50 +87,130 @@ export class MapController {
             printBtn.addEventListener('click', () => this.generatePDF());
         }
     }
-
+    
     generatePDF() {
-        // Captura o mapa como imagem
-        html2canvas(this.map.getContainer()).then(canvas => {
-            const imgData = canvas.toDataURL('image/png');
-            const pdf = new jspdf.jsPDF('landscape', 'mm', 'a4');
-            const pageWidth = pdf.internal.pageSize.getWidth();
-            const pageHeight = pdf.internal.pageSize.getHeight();
-            const imgWidth = pageWidth;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-            // Adiciona a imagem do mapa ao PDF
-            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
-
-            // Adiciona legendas e camadas selecionadas
-            const selectedLayers = this.getSelectedLayersInfo();
-            let offsetY = imgHeight + 10;
-
-            // Adiciona título para a seção de legendas
-            pdf.setFontSize(12);
-            pdf.text("Legendas das Camadas:", 10, offsetY);
-            offsetY += 10;
-
-            // Adiciona cada legenda das camadas
-            selectedLayers.forEach((layer, index) => {
-                pdf.setFontSize(10);
-                pdf.text(`Camada ${index + 1}: ${layer}`, 10, offsetY);
-                offsetY += 10;
-            });
-
-            // Salva o PDF
-            pdf.save('mapa_com_legendas.pdf');
+        // Oculta elementos que não devem aparecer na captura de tela
+        const elementsToHide = document.querySelectorAll('.leaflet-control-zoom, .header, #control-buttons, #sidebar, .interface-elements, .map-button, .esconde');
+        elementsToHide.forEach(el => el.style.display = 'none');
+    
+        // Obtém informações das camadas selecionadas
+        const selectedLayers = this.getSelectedLayersInfo();
+    
+        // Cria um elemento HTML para exibir informações de camadas e legendas
+        const infoContainer = document.createElement('div');
+        infoContainer.id = 'print-info';
+        infoContainer.style.position = 'absolute';
+        infoContainer.style.bottom = '10px';
+        infoContainer.style.left = '10px';
+        infoContainer.style.padding = '10px';
+        infoContainer.style.backgroundColor = 'white';
+        infoContainer.style.border = '1px solid black';
+        infoContainer.style.fontSize = '12px';
+    
+        // Adiciona título para camadas
+        const layerTitle = document.createElement('h3');
+        layerTitle.textContent = 'Camadas Ativas:';
+        infoContainer.appendChild(layerTitle);
+    
+        // Adiciona informações de cada camada ativa
+        selectedLayers.forEach((info) => {
+            const layerInfoContainer = document.createElement('div');
+            layerInfoContainer.style.display = 'flex';
+            layerInfoContainer.style.alignItems = 'center';
+    
+            // Armazena a cor da camada em uma variável (usando um valor padrão se não existir)
+            const color = info.legend || '#000000';
+    
+            // Cria um elemento SVG para representação da geometria
+            const geometrySVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            geometrySVG.setAttribute("width", "24");
+            geometrySVG.setAttribute("height", "24");
+    
+            let shapeElement;
+    
+            // Define o elemento SVG com base no tipo de geometria, aplicando a cor armazenada
+            if (info.geometryType.includes('MultiPolygon')) {
+                shapeElement = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                shapeElement.setAttribute("width", "20");
+                shapeElement.setAttribute("height", "20");
+                shapeElement.setAttribute("fill", color); // Aplica a cor de preenchimento armazenada
+                shapeElement.setAttribute("stroke", color); // Aplica a cor da borda
+                shapeElement.setAttribute("stroke-width", "2");
+            } else if (info.geometryType.includes('MultiLine')) {
+                shapeElement = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                shapeElement.setAttribute("x1", "0");
+                shapeElement.setAttribute("y1", "12");
+                shapeElement.setAttribute("x2", "20");
+                shapeElement.setAttribute("y2", "12");
+                shapeElement.setAttribute("stroke", color); // Aplica a cor da linha
+                shapeElement.setAttribute("stroke-width", "2");
+                shapeElement.setAttribute("fill", "none"); // Certifica-se de que o preenchimento seja "nenhum"
+            } else if (info.geometryType.includes('MultiPoint')) {
+                shapeElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+                shapeElement.setAttribute("cx", "10");
+                shapeElement.setAttribute("cy", "10");
+                shapeElement.setAttribute("r", "5");
+                shapeElement.setAttribute("fill", color); // Aplica a cor de preenchimento armazenada
+                shapeElement.setAttribute("stroke", color); // Aplica a cor da borda
+                shapeElement.setAttribute("stroke-width", "1");
+            }
+    
+            // Adiciona o elemento de forma geométrica ao SVG
+            if (shapeElement) {
+                geometrySVG.appendChild(shapeElement);
+            }
+    
+            // Adiciona o SVG e o texto de descrição ao contêiner da camada
+            layerInfoContainer.appendChild(geometrySVG);
+    
+            const layerInfoText = document.createElement('span');
+            layerInfoText.textContent = ` Camada: ${info.layer} `;
+            layerInfoText.style.marginLeft = '8px';
+    
+            layerInfoContainer.appendChild(layerInfoText);
+            infoContainer.appendChild(layerInfoContainer);
         });
+    
+        // Adiciona o contêiner de informações ao body
+        document.body.appendChild(infoContainer);
+    
+        // Imprime a página após um pequeno delay para garantir o carregamento
+        setTimeout(() => {
+            window.print();
+    
+            // Remove o contêiner de informações e restaura a visibilidade dos elementos
+            document.body.removeChild(infoContainer);
+            elementsToHide.forEach(el => el.style.display = '');
+        }, 500);
     }
+    
+    
+    
+    
 
     getSelectedLayersInfo() {
         const layersInfo = [];
-        this.map.eachLayer(layer => {
-            if (layer.options && layer.options.attribution) {
-                layersInfo.push(layer.options.attribution);
+        
+        // Verifica as camadas ativas no GeoJSONController
+        Object.keys(this.geoJSONController.layers).forEach(layerName => {
+            const layer = this.geoJSONController.layers[layerName];
+            
+            // Verifica se a camada está visível no mapa
+            if (this.map.hasLayer(layer.layerGroup)) {
+                const layerInfo = {
+                    layer: layerName,
+                    legend: this.geoJSONController.colors[layerName] || 'Legenda não disponível',
+                    geometryType: layer.geometryType
+                };
+                layersInfo.push(layerInfo);
             }
         });
+        
         return layersInfo;
     }
+    
+
+
 
     resetMapView() {
         this.map.setView(this.initialCenter, this.initialZoom);
@@ -231,21 +319,65 @@ export class MapController {
             });
     }
 
-
-    updateScale() {
-        const zoomLevel = this.map.getZoom();
-        const latitude = this.map.getCenter().lat;
-        
-        // Constante baseada em uma escala padrão para zoom 0
-        const EARTH_CIRCUMFERENCE = 40075017; // Circunferência da Terra em metros
-        const scale = (EARTH_CIRCUMFERENCE * Math.cos(latitude * Math.PI / 180)) / (Math.pow(2, zoomLevel) * 256);
-        
-        // Formatação da escala para exibição
-        const scaleDisplay = document.getElementById('scale-display');
-        if (scaleDisplay) {
-            scaleDisplay.textContent = `Escala: 1:${Math.round(scale)}`;
-        }
+// Função para atualizar a exibição da escala com base no zoom atual
+updateScale() {
+    const zoomLevel = this.map.getZoom();
+    const latitude = this.map.getCenter().lat;
+    const EARTH_CIRCUMFERENCE = 40075017; // Circunferência da Terra em metros
+    
+    // Cálculo da escala com base no zoom e latitude
+    const scale = (EARTH_CIRCUMFERENCE * Math.cos(latitude * Math.PI / 180)) / (Math.pow(2, zoomLevel) * 256);
+    
+    // Exibição da escala no elemento 'scale-display'
+    const scaleDisplay = document.getElementById('scale-display');
+    if (scaleDisplay) {
+        scaleDisplay.textContent = `Escala: 1:${Math.round(scale)}`;
     }
+    
+    // Atualizar o seletor de escala para refletir a escala atual
+    const scaleSelector = document.getElementById('scale-selector');
+    if (scaleSelector) {
+        scaleSelector.value = Math.round(scale); // Atualiza o dropdown com a escala arredondada
+    }
+}
+
+// Função para definir o zoom do mapa com base na escala escolhida pelo usuário
+setScaleByDropdown() {
+    const scaleSelector = document.getElementById('scale-selector');
+    const selectedScale = parseInt(scaleSelector.value, 10);
+    const latitude = this.map.getCenter().lat;
+    const EARTH_CIRCUMFERENCE = 40075017; // Circunferência da Terra em metros
+
+    // Função auxiliar para calcular a escala com base no nível de zoom
+    const calculateScale = (zoom) => {
+        return (EARTH_CIRCUMFERENCE * Math.cos(latitude * Math.PI / 180)) / (Math.pow(2, zoom) * 256);
+    };
+
+    // Inicialmente aproxima o zoom a partir de uma fórmula
+    let zoomLevel = Math.log2((EARTH_CIRCUMFERENCE * Math.cos(latitude * Math.PI / 180)) / (selectedScale * 256));
+
+    // Ajuste iterativo para garantir a precisão da escala
+    let calculatedScale = calculateScale(zoomLevel);
+    let tolerance = 0.01; // Tolerância para a escala, ajustável conforme necessário
+
+    while (Math.abs(calculatedScale - selectedScale) / selectedScale > tolerance) {
+        zoomLevel += (calculatedScale > selectedScale ? -0.05 : 0.05); // Ajusta o zoom para cima ou para baixo em pequenos incrementos
+        calculatedScale = calculateScale(zoomLevel); // Recalcula a escala com o novo zoom
+    }
+
+    // Aplica o zoom ajustado ao mapa
+    this.map.setZoom(zoomLevel);
+
+    // Recalcula a escala e atualiza a exibição após a aplicação do zoom
+    setTimeout(() => {
+        this.updateScale();
+    }, 100); // Pequeno atraso para garantir que o zoom tenha sido aplicado antes de atualizar a escala
+}
+
+
+
+
+
 
     setupMouseCoordinates() {
         const formatSelector = document.getElementById('formatSelector');

@@ -149,10 +149,11 @@
   <button id="terrain-profile-btn" class="map-button"><i class="fas fa-mountain"></i></button>
   <button id="swipe-tool-btn" class="map-button"><i class="fas fa-exchange-alt"></i></button>
  
-  <button id="print-btn" class="map-button"><i class="fas fa-print"></i></button>
+  
+  <button id="print-btn" class="map-button" ><i class="fas fa-print"></i></button>
   <button id="stat-analysis-btn" class="map-button"><i class="fas fa-chart-bar"></i></button>
 
-  <div id="measurement-box" class="hidden">
+  <div id="measurement-box" class="hidden" class="esconde">
     
     <select id="unit-selector">
       <option value="m">Metros</option>
@@ -166,10 +167,10 @@
   </div>
   
   
-<div id="scale-display">Escala: 1:1000</div>
-  
+    <span id="scale-display" class="esconde"></span>
 
-<div id="coordinates" style="
+
+<div class="esconde" id="coordinates" style="
 position: absolute; 
 bottom: 10px; 
 left: 10px; 
@@ -193,6 +194,10 @@ justify-content: space-between;">
 </div>
 
 
+
+<script src="https://unpkg.com/leaflet-image@0.4.0/leaflet-image.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.6.2/proj4.js"></script>

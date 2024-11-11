@@ -80,61 +80,108 @@ export class MapController {
             this.setScaleByDropdown();
         });
     }
-
+    
     setupPrintEvent() {
         const printBtn = document.getElementById('print-btn');
         if (printBtn) {
             printBtn.addEventListener('click', () => this.generatePDF());
         }
     }
-    
     generatePDF() {
         // Oculta elementos que não devem aparecer na captura de tela
-        const elementsToHide = document.querySelectorAll('.leaflet-control-zoom, .header, #control-buttons, #sidebar, .interface-elements, .map-button, .esconde');
+        const elementsToHide = document.querySelectorAll('.leaflet-control-zoom, .header, #control-buttons, #sidebar, .interface-elements, .map-button, .esconde, .leaflet-control-attribution');
         elementsToHide.forEach(el => el.style.display = 'none');
+    
+        // Configura o estilo do #scale-display para que fique no canto inferior direito do mapa
+        const scaleDisplay = document.getElementById('scale-display');
+        const originalScaleDisplayStyle = scaleDisplay.style.cssText;
+        scaleDisplay.style.position = 'absolute';  // Use 'absolute' para ancorar no mapa
+        scaleDisplay.style.bottom = '10px'; // Ajuste a distância do fundo do mapa
+        scaleDisplay.style.left = '700px';  // Ajuste a distância da direita do mapa
+        scaleDisplay.style.backgroundColor = 'transparent';
+        scaleDisplay.style.fontSize = '12px';
+        scaleDisplay.style.padding = '5px';
+    
+        // Adiciona o título na div 'createTitle'
+        const titleContainer = document.getElementById('createTitle');
+        titleContainer.innerHTML = ''; // Limpa o conteúdo anterior, se houver
+        titleContainer.style.display = 'flex';
+        titleContainer.style.justifyContent = 'center';
+        titleContainer.style.marginBottom = '20px'; // Ajuste de margem inferior
+    
+        const titleElement = document.createElement('h1');
+        titleElement.style.textAlign = 'center';
+        titleElement.style.display = 'flex';
+        titleElement.style.alignItems = 'center';
+    
+        // Cria a imagem para o início do título
+        const startImage = document.createElement('img');
+        startImage.src = 'https://www.itinga.ma.gov.br/imagens/logo.png?v=2.0';
+        startImage.alt = 'Imagem Início';
+        startImage.style.width = '24px';
+        startImage.style.height = '24px';
+        startImage.style.marginRight = '5px';
+    
+        // Cria o texto do título entre as imagens
+        const titleText = document.createElement('span');
+        titleText.textContent = 'ITINGA - MA';
+        titleText.style.margin = '0 5px';
+    
+        // Cria a imagem para o final do título
+        const endImage = document.createElement('img');
+        endImage.src = 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Bandeira_Itinga_do_Maranh%C3%A3o%2C_MA.jpg?20161226183048';
+        endImage.alt = 'Imagem Fim';
+        endImage.style.width = '24px';
+        endImage.style.height = '35px';
+        endImage.style.marginLeft = '5px';
+    
+        // Adiciona as imagens e o texto ao título
+        titleElement.appendChild(startImage);
+        titleElement.appendChild(titleText);
+        titleElement.appendChild(endImage);
+        titleContainer.appendChild(titleElement);
     
         // Obtém informações das camadas selecionadas
         const selectedLayers = this.getSelectedLayersInfo();
     
-        // Cria um elemento HTML para exibir informações de camadas e legendas
+        // Localiza a div de legenda
+        const legendContainer = document.getElementById('createlegend');
+        legendContainer.innerHTML = ''; // Limpa o conteúdo anterior da div de legenda
+        legendContainer.style.display = 'flex';
+        legendContainer.style.justifyContent = 'center';
+    
         const infoContainer = document.createElement('div');
         infoContainer.id = 'print-info';
-        infoContainer.style.position = 'absolute';
-        infoContainer.style.bottom = '10px';
-        infoContainer.style.left = '10px';
         infoContainer.style.padding = '10px';
         infoContainer.style.backgroundColor = 'white';
-        infoContainer.style.border = '1px solid black';
         infoContainer.style.fontSize = '12px';
+        infoContainer.style.width = '80%'; // Centraliza o conteúdo e ocupa 80% da largura da página
+        infoContainer.style.textAlign = 'center';
     
-        // Adiciona título para camadas
         const layerTitle = document.createElement('h3');
         layerTitle.textContent = 'Camadas Ativas:';
+        layerTitle.style.textAlign = 'center';
         infoContainer.appendChild(layerTitle);
     
-        // Adiciona informações de cada camada ativa
         selectedLayers.forEach((info) => {
             const layerInfoContainer = document.createElement('div');
             layerInfoContainer.style.display = 'flex';
             layerInfoContainer.style.alignItems = 'center';
+            layerInfoContainer.style.justifyContent = 'center';
     
-            // Armazena a cor da camada em uma variável (usando um valor padrão se não existir)
             const color = info.legend || '#000000';
     
-            // Cria um elemento SVG para representação da geometria
             const geometrySVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             geometrySVG.setAttribute("width", "24");
             geometrySVG.setAttribute("height", "24");
     
             let shapeElement;
-    
-            // Define o elemento SVG com base no tipo de geometria, aplicando a cor armazenada
             if (info.geometryType.includes('MultiPolygon')) {
                 shapeElement = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 shapeElement.setAttribute("width", "20");
                 shapeElement.setAttribute("height", "20");
-                shapeElement.setAttribute("fill", color); // Aplica a cor de preenchimento armazenada
-                shapeElement.setAttribute("stroke", color); // Aplica a cor da borda
+                shapeElement.setAttribute("fill", color);
+                shapeElement.setAttribute("stroke", color);
                 shapeElement.setAttribute("stroke-width", "2");
             } else if (info.geometryType.includes('MultiLine')) {
                 shapeElement = document.createElementNS("http://www.w3.org/2000/svg", "line");
@@ -142,25 +189,23 @@ export class MapController {
                 shapeElement.setAttribute("y1", "12");
                 shapeElement.setAttribute("x2", "20");
                 shapeElement.setAttribute("y2", "12");
-                shapeElement.setAttribute("stroke", color); // Aplica a cor da linha
+                shapeElement.setAttribute("stroke", color);
                 shapeElement.setAttribute("stroke-width", "2");
-                shapeElement.setAttribute("fill", "none"); // Certifica-se de que o preenchimento seja "nenhum"
+                shapeElement.setAttribute("fill", "none");
             } else if (info.geometryType.includes('MultiPoint')) {
                 shapeElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
                 shapeElement.setAttribute("cx", "10");
                 shapeElement.setAttribute("cy", "10");
                 shapeElement.setAttribute("r", "5");
-                shapeElement.setAttribute("fill", color); // Aplica a cor de preenchimento armazenada
-                shapeElement.setAttribute("stroke", color); // Aplica a cor da borda
+                shapeElement.setAttribute("fill", color);
+                shapeElement.setAttribute("stroke", color);
                 shapeElement.setAttribute("stroke-width", "1");
             }
     
-            // Adiciona o elemento de forma geométrica ao SVG
             if (shapeElement) {
                 geometrySVG.appendChild(shapeElement);
             }
     
-            // Adiciona o SVG e o texto de descrição ao contêiner da camada
             layerInfoContainer.appendChild(geometrySVG);
     
             const layerInfoText = document.createElement('span');
@@ -171,16 +216,38 @@ export class MapController {
             infoContainer.appendChild(layerInfoContainer);
         });
     
-        // Adiciona o contêiner de informações ao body
-        document.body.appendChild(infoContainer);
+        legendContainer.appendChild(infoContainer);
     
-        // Imprime a página após um pequeno delay para garantir o carregamento
+        const style = document.createElement('style');
+        style.textContent = `
+            @media print {
+                body {
+                    zoom: 0.75;
+                }
+                #print-info {
+                    page-break-inside: avoid;
+                }
+                #scale-display {
+                    position: absolute;
+                    bottom: 50px;
+                    right: 10px;
+                    background-color: transparent;
+                    font-size: 12px;
+                    padding: 5px;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    
         setTimeout(() => {
             window.print();
     
-            // Remove o contêiner de informações e restaura a visibilidade dos elementos
-            document.body.removeChild(infoContainer);
+            // Restaura as configurações e exibe novamente os elementos ocultos
+            scaleDisplay.style.cssText = originalScaleDisplayStyle;
+            titleContainer.innerHTML = '';
+            legendContainer.removeChild(infoContainer);
             elementsToHide.forEach(el => el.style.display = '');
+            document.head.removeChild(style);
         }, 500);
     }
     

@@ -69,215 +69,217 @@ export class MapController {
         // Configura o evento de atualização de escala ao mudar o zoom
         this.map.on('zoomend', () => this.updateScale());
 
-        // Observador para sincronizar o zoom e a escala ao modificar o zoom manualmente no mapa
-        this.map.on('zoomend', () => {
-            this.updateScale(); // Atualiza a escala exibida sempre que o zoom do mapa for alterado manualmente
-        });
-
+        // Exibe a escala inicial
         this.updateScale();
-        // Evento para atualizar o zoom ao selecionar uma nova escala
-        document.getElementById('scale-selector').addEventListener('change', () => {
-            this.setScaleByDropdown();
-        });
     }
-    
+
     setupPrintEvent() {
         const printBtn = document.getElementById('print-btn');
         if (printBtn) {
             printBtn.addEventListener('click', () => this.generatePDF());
         }
     }
+
     generatePDF() {
-        // Oculta elementos que não devem aparecer na captura de tela
-        const elementsToHide = document.querySelectorAll('.leaflet-control-zoom, .header, #control-buttons, #sidebar, .interface-elements, .map-button, .esconde, .leaflet-control-attribution');
-        elementsToHide.forEach(el => el.style.display = 'none');
+      // Oculta elementos que não devem aparecer na captura de tela
+      const elementsToHide = document.querySelectorAll('.leaflet-control-zoom, .header, #control-buttons, #sidebar, .interface-elements, .map-button, .esconde, .leaflet-control-attribution');
+      elementsToHide.forEach(el => el.style.display = 'none');
+  
+      // Configura o estilo do #scale-display para que fique no canto inferior direito do mapa
+      const scaleDisplay = document.getElementById('scale-display');
+      const originalScaleDisplayStyle = scaleDisplay.style.cssText;
+      scaleDisplay.style.position = 'absolute';
+      scaleDisplay.style.bottom = '10px';
+      scaleDisplay.style.left = '700px';
+      scaleDisplay.style.backgroundColor = 'transparent';
+      scaleDisplay.style.fontSize = '12px';
+      scaleDisplay.style.padding = '5px';
+      scaleDisplay.style.border = 'none';
+  
+      // Adiciona o título na div 'createTitle'
+      const titleContainer = document.getElementById('createTitle');
+      titleContainer.innerHTML = ''; // Limpa o conteúdo anterior, se houver
+      titleContainer.style.display = 'flex';
+      titleContainer.style.justifyContent = 'center';
+      titleContainer.style.marginBottom = '20px';
+  
+      const titleElement = document.createElement('h1');
+      titleElement.style.textAlign = 'center';
+      titleElement.style.display = 'flex';
+      titleElement.style.alignItems = 'center';
+  
+      // Cria a imagem para o início do título
+      const startImage = document.createElement('img');
+      startImage.src = 'https://www.itinga.ma.gov.br/imagens/logo.png?v=2.0';
+      startImage.alt = 'Imagem Início';
+      startImage.style.width = '24px';
+      startImage.style.height = '24px';
+      startImage.style.marginRight = '5px';
+  
+      // Cria o texto do título entre as imagens
+      const titleText = document.createElement('span');
+      titleText.textContent = 'PEDRO DO ROSARIO - MA';
+      titleText.style.margin = '0 5px';
+  
+      // Cria a imagem para o final do título
+      const endImage = document.createElement('img');
+      endImage.src = 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Bandeira_Itinga_do_Maranh%C3%A3o%2C_MA.jpg?20161226183048';
+      endImage.alt = 'Imagem Fim';
+      endImage.style.width = '24px';
+      endImage.style.height = '35px';
+      endImage.style.marginLeft = '5px';
+  
+      // Adiciona as imagens e o texto ao título
+      titleElement.appendChild(startImage);
+      titleElement.appendChild(titleText);
+      titleElement.appendChild(endImage);
+      titleContainer.appendChild(titleElement);
+  
+      // Obtém informações das camadas selecionadas
+      const selectedLayers = this.getSelectedLayersInfo();
+  
+      // Localiza a div de legenda
+      const legendContainer = document.getElementById('createlegend');
+      legendContainer.innerHTML = ''; // Limpa o conteúdo anterior da div de legenda
+      legendContainer.style.display = 'flex';
+      legendContainer.style.justifyContent = 'center';
+  
+      const infoContainer = document.createElement('div');
+      infoContainer.id = 'print-info';
+      infoContainer.style.padding = '10px';
+      infoContainer.style.backgroundColor = 'white';
+      infoContainer.style.fontSize = '12px';
+      infoContainer.style.width = '120%';
+      infoContainer.style.textAlign = 'center';
+      infoContainer.style.border = 'none';
+  
+      const layerTitle = document.createElement('h3');
+      layerTitle.textContent = 'Camadas Ativas:';
+      layerTitle.style.textAlign = 'center';
+      infoContainer.appendChild(layerTitle);
+  
+      selectedLayers.forEach((info) => {
+          const layerInfoContainer = document.createElement('div');
+          layerInfoContainer.style.display = 'flex';
+          layerInfoContainer.style.alignItems = 'center';
+          layerInfoContainer.style.marginBottom = '10px';
+          layerInfoContainer.style.width = '100%';
+  
+          const color = info.legend || '#000000';
+  
+          const geometrySVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+          geometrySVG.setAttribute("width", "24");
+          geometrySVG.setAttribute("height", "24");
+          geometrySVG.style.marginRight = "10px";
+  
+          let shapeElement;
+          if (info.geometryType.includes('MultiPolygon')) {
+              shapeElement = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+              shapeElement.setAttribute("width", "20");
+              shapeElement.setAttribute("height", "20");
+              shapeElement.setAttribute("fill", color);
+              shapeElement.setAttribute("stroke", color);
+              shapeElement.setAttribute("stroke-width", "2");
+          } else if (info.geometryType.includes('MultiLine')) {
+              shapeElement = document.createElementNS("http://www.w3.org/2000/svg", "line");
+              shapeElement.setAttribute("x1", "0");
+              shapeElement.setAttribute("y1", "12");
+              shapeElement.setAttribute("x2", "20");
+              shapeElement.setAttribute("y2", "12");
+              shapeElement.setAttribute("stroke", color);
+              shapeElement.setAttribute("stroke-width", "2");
+              shapeElement.setAttribute("fill", "none");
+          } else if (info.geometryType.includes('MultiPoint')) {
+              shapeElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+              shapeElement.setAttribute("cx", "10");
+              shapeElement.setAttribute("cy", "10");
+              shapeElement.setAttribute("r", "5");
+              shapeElement.setAttribute("fill", color);
+              shapeElement.setAttribute("stroke", color);
+              shapeElement.setAttribute("stroke-width", "1");
+          }
+  
+          if (shapeElement) {
+              geometrySVG.appendChild(shapeElement);
+          }
+  
+          layerInfoContainer.appendChild(geometrySVG);
+  
+          const layerInfoText = document.createElement('span');
+          layerInfoText.textContent = ` Camada: ${info.layer} `;
+          layerInfoText.style.marginLeft = '8px';
+          layerInfoText.style.flex = '1';
+          layerInfoText.style.textAlign = 'left';
+  
+          layerInfoContainer.appendChild(layerInfoText);
+          infoContainer.appendChild(layerInfoContainer);
+      });
+  
+      // Adiciona a data e a hora ao final das legendas
+      const dateInfo = document.createElement('div');
+      dateInfo.style.marginTop = '20px';
+      dateInfo.style.textAlign = 'center';
+      const now = new Date();
+      const options = { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+      dateInfo.textContent = `${now.toLocaleDateString('pt-BR', options)}`;
+      infoContainer.appendChild(dateInfo);
+  
+      legendContainer.appendChild(infoContainer);
+  
+      const style = document.createElement('style');
+      style.textContent = `
+          @media print {
+              body {
+                  zoom: 0.75;
+              }
+              #print-info {
+                  page-break-inside: avoid;
+              }
+              #scale-display {
+                  position: absolute;
+                  bottom: 50px;
+                  right: 10px;
+                  background-color: transparent;
+                  font-size: 12px;
+                  padding: 5px;
+              }
+          }
+      `;
+      document.head.appendChild(style);
+  
+      setTimeout(() => {
+          window.print();
+  
+          // Restaura as configurações e exibe novamente os elementos ocultos
+          scaleDisplay.style.cssText = originalScaleDisplayStyle;
+          titleContainer.style.display = 'none';
+          legendContainer.removeChild(infoContainer);
+          elementsToHide.forEach(el => el.style.display = '');
+          document.head.removeChild(style);
+      }, 500);
+  }
+  
+  
+  getSelectedLayersInfo() {
+    const layersInfo = [];
     
-        // Configura o estilo do #scale-display para que fique no canto inferior direito do mapa
-        const scaleDisplay = document.getElementById('scale-display');
-        const originalScaleDisplayStyle = scaleDisplay.style.cssText;
-        scaleDisplay.style.position = 'absolute';  // Use 'absolute' para ancorar no mapa
-        scaleDisplay.style.bottom = '10px'; // Ajuste a distância do fundo do mapa
-        scaleDisplay.style.left = '700px';  // Ajuste a distância da direita do mapa
-        scaleDisplay.style.backgroundColor = 'transparent';
-        scaleDisplay.style.fontSize = '12px';
-        scaleDisplay.style.padding = '5px';
-    
-        // Adiciona o título na div 'createTitle'
-        const titleContainer = document.getElementById('createTitle');
-        titleContainer.innerHTML = ''; // Limpa o conteúdo anterior, se houver
-        titleContainer.style.display = 'flex';
-        titleContainer.style.justifyContent = 'center';
-        titleContainer.style.marginBottom = '20px'; // Ajuste de margem inferior
-    
-        const titleElement = document.createElement('h1');
-        titleElement.style.textAlign = 'center';
-        titleElement.style.display = 'flex';
-        titleElement.style.alignItems = 'center';
-    
-        // Cria a imagem para o início do título
-        const startImage = document.createElement('img');
-        startImage.src = 'https://www.itinga.ma.gov.br/imagens/logo.png?v=2.0';
-        startImage.alt = 'Imagem Início';
-        startImage.style.width = '24px';
-        startImage.style.height = '24px';
-        startImage.style.marginRight = '5px';
-    
-        // Cria o texto do título entre as imagens
-        const titleText = document.createElement('span');
-        titleText.textContent = 'ITINGA - MA';
-        titleText.style.margin = '0 5px';
-    
-        // Cria a imagem para o final do título
-        const endImage = document.createElement('img');
-        endImage.src = 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Bandeira_Itinga_do_Maranh%C3%A3o%2C_MA.jpg?20161226183048';
-        endImage.alt = 'Imagem Fim';
-        endImage.style.width = '24px';
-        endImage.style.height = '35px';
-        endImage.style.marginLeft = '5px';
-    
-        // Adiciona as imagens e o texto ao título
-        titleElement.appendChild(startImage);
-        titleElement.appendChild(titleText);
-        titleElement.appendChild(endImage);
-        titleContainer.appendChild(titleElement);
-    
-        // Obtém informações das camadas selecionadas
-        const selectedLayers = this.getSelectedLayersInfo();
-    
-        // Localiza a div de legenda
-        const legendContainer = document.getElementById('createlegend');
-        legendContainer.innerHTML = ''; // Limpa o conteúdo anterior da div de legenda
-        legendContainer.style.display = 'flex';
-        legendContainer.style.justifyContent = 'center';
-    
-        const infoContainer = document.createElement('div');
-        infoContainer.id = 'print-info';
-        infoContainer.style.padding = '10px';
-        infoContainer.style.backgroundColor = 'white';
-        infoContainer.style.fontSize = '12px';
-        infoContainer.style.width = '80%'; // Centraliza o conteúdo e ocupa 80% da largura da página
-        infoContainer.style.textAlign = 'center';
-    
-        const layerTitle = document.createElement('h3');
-        layerTitle.textContent = 'Camadas Ativas:';
-        layerTitle.style.textAlign = 'center';
-        infoContainer.appendChild(layerTitle);
-    
-        selectedLayers.forEach((info) => {
-            const layerInfoContainer = document.createElement('div');
-            layerInfoContainer.style.display = 'flex';
-            layerInfoContainer.style.alignItems = 'center';
-            layerInfoContainer.style.justifyContent = 'center';
-    
-            const color = info.legend || '#000000';
-    
-            const geometrySVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-            geometrySVG.setAttribute("width", "24");
-            geometrySVG.setAttribute("height", "24");
-    
-            let shapeElement;
-            if (info.geometryType.includes('MultiPolygon')) {
-                shapeElement = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-                shapeElement.setAttribute("width", "20");
-                shapeElement.setAttribute("height", "20");
-                shapeElement.setAttribute("fill", color);
-                shapeElement.setAttribute("stroke", color);
-                shapeElement.setAttribute("stroke-width", "2");
-            } else if (info.geometryType.includes('MultiLine')) {
-                shapeElement = document.createElementNS("http://www.w3.org/2000/svg", "line");
-                shapeElement.setAttribute("x1", "0");
-                shapeElement.setAttribute("y1", "12");
-                shapeElement.setAttribute("x2", "20");
-                shapeElement.setAttribute("y2", "12");
-                shapeElement.setAttribute("stroke", color);
-                shapeElement.setAttribute("stroke-width", "2");
-                shapeElement.setAttribute("fill", "none");
-            } else if (info.geometryType.includes('MultiPoint')) {
-                shapeElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                shapeElement.setAttribute("cx", "10");
-                shapeElement.setAttribute("cy", "10");
-                shapeElement.setAttribute("r", "5");
-                shapeElement.setAttribute("fill", color);
-                shapeElement.setAttribute("stroke", color);
-                shapeElement.setAttribute("stroke-width", "1");
-            }
-    
-            if (shapeElement) {
-                geometrySVG.appendChild(shapeElement);
-            }
-    
-            layerInfoContainer.appendChild(geometrySVG);
-    
-            const layerInfoText = document.createElement('span');
-            layerInfoText.textContent = ` Camada: ${info.layer} `;
-            layerInfoText.style.marginLeft = '8px';
-    
-            layerInfoContainer.appendChild(layerInfoText);
-            infoContainer.appendChild(layerInfoContainer);
-        });
-    
-        legendContainer.appendChild(infoContainer);
-    
-        const style = document.createElement('style');
-        style.textContent = `
-            @media print {
-                body {
-                    zoom: 0.75;
-                }
-                #print-info {
-                    page-break-inside: avoid;
-                }
-                #scale-display {
-                    position: absolute;
-                    bottom: 50px;
-                    right: 10px;
-                    background-color: transparent;
-                    font-size: 12px;
-                    padding: 5px;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    
-        setTimeout(() => {
-            window.print();
-    
-            // Restaura as configurações e exibe novamente os elementos ocultos
-            scaleDisplay.style.cssText = originalScaleDisplayStyle;
-            titleContainer.innerHTML = '';
-            legendContainer.removeChild(infoContainer);
-            elementsToHide.forEach(el => el.style.display = '');
-            document.head.removeChild(style);
-        }, 500);
-    }
-    
-    
-    
-    
-
-    getSelectedLayersInfo() {
-        const layersInfo = [];
+    // Verifica as camadas ativas no GeoJSONController
+    Object.keys(this.geoJSONController.layers).forEach(layerName => {
+        const layer = this.geoJSONController.layers[layerName];
         
-        // Verifica as camadas ativas no GeoJSONController
-        Object.keys(this.geoJSONController.layers).forEach(layerName => {
-            const layer = this.geoJSONController.layers[layerName];
-            
-            // Verifica se a camada está visível no mapa
-            if (this.map.hasLayer(layer.layerGroup)) {
-                const layerInfo = {
-                    layer: layerName,
-                    legend: this.geoJSONController.colors[layerName] || 'Legenda não disponível',
-                    geometryType: layer.geometryType
-                };
-                layersInfo.push(layerInfo);
-            }
-        });
-        
-        return layersInfo;
-    }
+        // Verifica se a camada está visível no mapa
+        if (this.map.hasLayer(layer.layerGroup)) {
+            const layerInfo = {
+                layer: layerName,
+                legend: this.geoJSONController.colors[layerName] || 'Legenda não disponível',
+                geometryType: layer.geometryType
+            };
+            layersInfo.push(layerInfo);
+        }
+    });
     
-
-
+    return layersInfo;
+}
 
     resetMapView() {
         this.map.setView(this.initialCenter, this.initialZoom);
@@ -386,65 +388,21 @@ export class MapController {
             });
     }
 
-// Função para atualizar a exibição da escala com base no zoom atual
-updateScale() {
-    const zoomLevel = this.map.getZoom();
-    const latitude = this.map.getCenter().lat;
-    const EARTH_CIRCUMFERENCE = 40075017; // Circunferência da Terra em metros
-    
-    // Cálculo da escala com base no zoom e latitude
-    const scale = (EARTH_CIRCUMFERENCE * Math.cos(latitude * Math.PI / 180)) / (Math.pow(2, zoomLevel) * 256);
-    
-    // Exibição da escala no elemento 'scale-display'
-    const scaleDisplay = document.getElementById('scale-display');
-    if (scaleDisplay) {
-        scaleDisplay.textContent = `Escala: 1:${Math.round(scale)}`;
+
+    updateScale() {
+        const zoomLevel = this.map.getZoom();
+        const latitude = this.map.getCenter().lat;
+        
+        // Constante baseada em uma escala padrão para zoom 0
+        const EARTH_CIRCUMFERENCE = 40075017; // Circunferência da Terra em metros
+        const scale = (EARTH_CIRCUMFERENCE * Math.cos(latitude * Math.PI / 180)) / (Math.pow(2, zoomLevel) * 256);
+        
+        // Formatação da escala para exibição
+        const scaleDisplay = document.getElementById('scale-display');
+        if (scaleDisplay) {
+            scaleDisplay.textContent = `Escala: 1:${Math.round(scale)}`;
+        }
     }
-    
-    // Atualizar o seletor de escala para refletir a escala atual
-    const scaleSelector = document.getElementById('scale-selector');
-    if (scaleSelector) {
-        scaleSelector.value = Math.round(scale); // Atualiza o dropdown com a escala arredondada
-    }
-}
-
-// Função para definir o zoom do mapa com base na escala escolhida pelo usuário
-setScaleByDropdown() {
-    const scaleSelector = document.getElementById('scale-selector');
-    const selectedScale = parseInt(scaleSelector.value, 10);
-    const latitude = this.map.getCenter().lat;
-    const EARTH_CIRCUMFERENCE = 40075017; // Circunferência da Terra em metros
-
-    // Função auxiliar para calcular a escala com base no nível de zoom
-    const calculateScale = (zoom) => {
-        return (EARTH_CIRCUMFERENCE * Math.cos(latitude * Math.PI / 180)) / (Math.pow(2, zoom) * 256);
-    };
-
-    // Inicialmente aproxima o zoom a partir de uma fórmula
-    let zoomLevel = Math.log2((EARTH_CIRCUMFERENCE * Math.cos(latitude * Math.PI / 180)) / (selectedScale * 256));
-
-    // Ajuste iterativo para garantir a precisão da escala
-    let calculatedScale = calculateScale(zoomLevel);
-    let tolerance = 0.01; // Tolerância para a escala, ajustável conforme necessário
-
-    while (Math.abs(calculatedScale - selectedScale) / selectedScale > tolerance) {
-        zoomLevel += (calculatedScale > selectedScale ? -0.05 : 0.05); // Ajusta o zoom para cima ou para baixo em pequenos incrementos
-        calculatedScale = calculateScale(zoomLevel); // Recalcula a escala com o novo zoom
-    }
-
-    // Aplica o zoom ajustado ao mapa
-    this.map.setZoom(zoomLevel);
-
-    // Recalcula a escala e atualiza a exibição após a aplicação do zoom
-    setTimeout(() => {
-        this.updateScale();
-    }, 100); // Pequeno atraso para garantir que o zoom tenha sido aplicado antes de atualizar a escala
-}
-
-
-
-
-
 
     setupMouseCoordinates() {
         const formatSelector = document.getElementById('formatSelector');

@@ -466,7 +466,7 @@ export class MapController {
     
     // Função para converter coordenadas para UTM com SIRGAS 2000
     convertToUTM_SIRGAS(lat, lng) {
-        // Usa o sistema proj4 para conversão (precisa da biblioteca proj4js)
+        // Usa o sistema proj4 para conversão (precisa da biblioteca proj4jss)
         const proj4 = window.proj4;
     
         // Define a projeção UTM com SIRGAS 2000

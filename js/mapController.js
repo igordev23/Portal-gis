@@ -166,7 +166,7 @@ export class MapController {
         infoContainer.style.border = 'none';
     
         const layerTitle = document.createElement('h3');
-        layerTitle.textContent = 'Camadas Ativas:';
+        layerTitle.textContent = 'Legendas:';
         layerTitle.style.textAlign = 'center';
         infoContainer.appendChild(layerTitle);
     
@@ -405,22 +405,26 @@ export class MapController {
                 suggestionsList.style.display = 'block';
             });
     }
-
-
     updateScale() {
         const zoomLevel = this.map.getZoom();
         const latitude = this.map.getCenter().lat;
         
         // Constante baseada em uma escala padrão para zoom 0
         const EARTH_CIRCUMFERENCE = 40075017; // Circunferência da Terra em metros
-        const scale = (EARTH_CIRCUMFERENCE * Math.cos(latitude * Math.PI / 180)) / (Math.pow(2, zoomLevel) * 256);
+    
+        // Converte latitude para radianos uma única vez
+        const latitudeInRadians = latitude * Math.PI / 180;
         
-        // Formatação da escala para exibição
+        // Calcula a escala e arredonda o resultado
+        const scale = Math.round((EARTH_CIRCUMFERENCE * Math.cos(latitudeInRadians)) / (Math.pow(2, zoomLevel) * 256));
+        
+        // Exibe a escala no elemento apropriado
         const scaleDisplay = document.getElementById('scale-display');
         if (scaleDisplay) {
-            scaleDisplay.textContent = `Escala: 1:${Math.round(scale)}`;
+            scaleDisplay.textContent = `Escala: 1:${scale}`;
         }
     }
+    
 
     setupMouseCoordinates() {
         const formatSelector = document.getElementById('formatSelector');

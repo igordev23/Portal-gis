@@ -9,7 +9,12 @@ import { MapController } from './mapController.js';
 document.addEventListener("DOMContentLoaded", function() {
   const mapControllerInstance = new MapController("map");
   window.mapController = mapControllerInstance; // Expondo a instância globalmente
+   // Botão "Fechar" no modal
+   document.getElementById('elevation-modal').querySelector('button').addEventListener('click', () => {
+    mapControllerInstance.fecharModal(); // Chama o método fecharModal
+  });
 });
+
 
 // Adiciona o evento de clique para o botão "home-btn"
 document.getElementById("home-btn").addEventListener("click", () => {

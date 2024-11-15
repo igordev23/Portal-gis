@@ -2,11 +2,16 @@ import { MeasurementController } from './MeasurementController.js';
 import { GeoJSONController } from './GeoJSONController.js';
 import { DataFetcher } from './DataFetcher.js';
 import { SwipeController } from './SwipeController.js';
+import ElevationService from './ElevationService.js';
 
 export class MapController {
     constructor(mapElementId) {
         this.initialCenter = [-2.99241, -45.40649];
         this.initialZoom = 10;
+        this.pontos = [];
+        this.polyline = null;
+        this.elevationService = new ElevationService();
+        this.chartInstance = null; // Propriedade para armazenar o gráfico
 
         // Inicializando o mapa e a camada base OSM
         this.osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -36,6 +41,9 @@ export class MapController {
         this.cartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; <a href="https://carto.com/">CartoDB</a> contributors'
         });
+
+        document.getElementById("terrain-elevation-btn").addEventListener("click", () => this.marcarPontos());
+    
 
         // Adicionando os controladores
         this.measurementController = new MeasurementController(this.map);
@@ -71,7 +79,149 @@ export class MapController {
 
         // Exibe a escala inicial
         this.updateScale();
+
+        
+
     }
+
+    abrirModal(dataElevacao) {
+        const modal = document.getElementById("elevation-modal");
+        modal.style.display = "block";
+    
+        const canvas = document.getElementById('elevation-chart');
+        const ctx = canvas.getContext('2d');
+    
+        // Destrói o gráfico existente, se houver
+        if (this.chartInstance) {
+            this.chartInstance.destroy();
+            this.chartInstance = null;
+        }
+    
+        // Cria uma nova instância do gráfico
+        this.chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dataElevacao.distancias,
+                datasets: [{
+                    label: 'Elevação (m)',
+                    data: dataElevacao.elevacoes,
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: { title: { display: true, text: 'Distância (m)' }},
+                    y: { title: { display: true, text: 'Elevação (m)' }}
+                }
+            }
+        });
+    }
+    
+    marcarPontos() {
+        // Limpa o estado anterior
+        if (this.polyline) {
+            this.map.removeLayer(this.polyline);
+            this.polyline = null;
+        }
+        if (this.marcadores && this.marcadores.length > 0) {
+            this.marcadores.forEach((marker) => this.map.removeLayer(marker));
+            this.marcadores = [];
+        }
+    
+        this.pontos = [];
+        this.marcadores = [];
+    
+        // Remove qualquer evento anterior
+        if (this.capturarPontoHandler) {
+            this.map.off("click", this.capturarPontoHandler);
+        }
+    
+        // Define o evento de captura de ponto
+        this.capturarPontoHandler = this.capturarPonto.bind(this);
+        this.map.on("click", this.capturarPontoHandler);
+    
+        alert("Clique no mapa para marcar o ponto inicial.");
+    }
+    
+    capturarPonto(event) {
+        const { lat, lng } = event.latlng;
+        const marker = L.marker([lat, lng]).addTo(this.map);
+    
+        // Salva o marcador para remoção futura, se necessário
+        this.marcadores = this.marcadores || [];
+        this.marcadores.push(marker);
+    
+        this.pontos.push([lat, lng]);
+    
+        if (this.pontos.length === 1) {
+            alert("Ponto inicial marcado. Clique no mapa para marcar o ponto final.");
+        } else if (this.pontos.length === 2) {
+            // Remove o evento "click" para evitar mais marcações
+            this.map.off("click", this.capturarPontoHandler);
+            this.desenharLinha();
+            this.calcularElevacao();
+        }
+    }
+    
+    desenharLinha() {
+        this.polyline = L.polyline(this.pontos, { color: 'blue' }).addTo(this.map);
+        this.map.fitBounds(this.polyline.getBounds());
+    }
+    
+    fecharModal() {
+        const modal = document.getElementById("elevation-modal");
+        modal.style.display = "none"; // Fecha o modal
+    
+        // Destrói o gráfico se ele existir
+        if (this.chartInstance) {
+            this.chartInstance.destroy(); // Remove a instância do gráfico
+            this.chartInstance = null;
+        }
+    
+        // Limpa o canvas
+        const canvas = document.getElementById('elevation-chart');
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height); // Remove qualquer conteúdo desenhado no canvas
+    
+        // Remove a linha (polyline) do mapa, se existir
+        if (this.polyline) {
+            this.map.removeLayer(this.polyline);
+            this.polyline = null;
+        }
+    
+        // Remove todos os marcadores adicionados no mapa
+        if (this.marcadores && this.marcadores.length > 0) {
+            this.marcadores.forEach((marker) => this.map.removeLayer(marker));
+            this.marcadores = [];
+        }
+    
+        // Remove o evento de captura de pontos do mapa, se existir
+        if (this.capturarPontoHandler) {
+            this.map.off("click", this.capturarPontoHandler);
+            this.capturarPontoHandler = null;
+        }
+    
+        // Reseta o estado dos pontos
+        this.pontos = [];
+    }
+    
+    
+    
+    
+      async calcularElevacao() {
+        const [pontoInicial, pontoFinal] = this.pontos;
+        
+        try {
+          const dataElevacao = await this.elevationService.calcularElevacao(pontoInicial, pontoFinal);
+          this.abrirModal(dataElevacao);
+        } catch (error) {
+          alert(error.message);
+        }
+      }
+
+
 
     setupPrintEvent() {
         const printBtn = document.getElementById('print-btn');
@@ -466,7 +616,7 @@ export class MapController {
     
     // Função para converter coordenadas para UTM com SIRGAS 2000
     convertToUTM_SIRGAS(lat, lng) {
-        // Usa o sistema proj4 para conversão (precisa da biblioteca proj4jss)
+        // Usa o sistema proj4 para conversão (precisa da biblioteca proj4js)
         const proj4 = window.proj4;
     
         // Define a projeção UTM com SIRGAS 2000

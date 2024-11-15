@@ -6,6 +6,7 @@
   <title>Portal Geometria Gis</title>
   <link href="css/output.css" rel="stylesheet">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <!-- Tailwind CSS -->
   <link href="css/output.css" rel="stylesheet">
   
@@ -42,6 +43,18 @@
       align-items: center;
       cursor: pointer;
       transition: background-color 0.3s ease;
+    }
+    #elevation-modal {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
     }
     
     
@@ -160,7 +173,7 @@
  
   
   <button id="measure-btn" class="map-button"><i class="fas fa-ruler"></i></button>
-  <button id="terrain-profile-btn" class="map-button"><i class="fas fa-mountain"></i></button>
+  <button id="terrain-elevation-btn" class="map-button"><i class="fas fa-mountain"></i></button>
   <button id="swipe-tool-btn" class="map-button"><i class="fas fa-exchange-alt"></i></button>
  
   
@@ -207,6 +220,12 @@ justify-content: space-between;">
 </select>
 </div>
 
+<!-- Modal para mostrar o gráfico de elevação -->
+<div id="elevation-modal" style="display: none;">
+  <h3>Perfil de Elevação</h3>
+  <canvas id="elevation-chart"></canvas>
+  <button onclick="window.mapController.fecharModal()">Fechar</button>
+</div>
 
 
 
@@ -226,7 +245,8 @@ justify-content: space-between;">
   
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Leaflet Draw JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
 

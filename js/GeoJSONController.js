@@ -80,8 +80,8 @@ export class GeoJSONController {
             <div id="camadas-header">
                 <span>Camadas</span>
             </div>
-            <input type="checkbox" id="static-image" value="static-image">
-            <label for="static-image">Raster</label><br>
+            <input type="checkbox" style="display: none"  id="static-image" value="static-image">
+            <label style="display: none" for="static-image">Raster</label><br>
         `;
 
         dados.forEach(tabela => {
@@ -111,27 +111,35 @@ export class GeoJSONController {
 
     generateAttributesTable(dados) {
         let tableHtml = `
-          <button class="close-btn">&times;</button>
-          <table>
-            <thead>
-              <tr><th>ID</th><th>Classe</th><th>Nome</th></tr>
-            </thead>
-            <tbody>
+        <div class="attributes-container">
+            <button class="close-btn">&times;</button>
+            <div class="table-wrapper">
+                <table class="attributes-table">
+                    <thead>
+                        <tr><th>ID</th><th>Classe</th><th>Nome</th></tr>
+                    </thead>
+                    <tbody>
         `;
-
-        dados.forEach(linha => {
-            tableHtml += `
-              <tr class="attribute-row" data-id="${linha.id}">
+    
+    dados.forEach(linha => {
+        tableHtml += `
+            <tr class="attribute-row" data-id="${linha.id}">
                 <td>${linha.id || ''}</td>
                 <td>${linha.fclass || ''}</td>
                 <td>${linha.name || ''}</td>
-              </tr>
-            `;
-        });
-
-        tableHtml += '</tbody></table>';
-        return tableHtml;
-    }
+            </tr>
+        `;
+    });
+    
+    tableHtml += `
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+    
+    return tableHtml;
+}
 
     setupDetailsListeners(dados) {
         document.querySelectorAll('.details-btn').forEach(button => {
@@ -220,42 +228,26 @@ export class GeoJSONController {
     }
 
     updateLayers() {
-        const staticImageCheckbox = document.querySelector('#selector input[type="checkbox"][value="static-image"]');
-
-        if (!staticImageCheckbox) {
-            console.error('Checkbox de imagem estática não encontrado!');
-            return;
-        }
-
-        const staticImageChecked = staticImageCheckbox.checked;
-
-        if (staticImageChecked) {
-            if (!this.map.hasLayer(this.staticImageLayer)) {
-                this.staticImageLayer.addTo(this.map);
-            }
-        } else {
-            if (this.map.hasLayer(this.staticImageLayer)) {
-                this.map.removeLayer(this.staticImageLayer);
-            }
-        }
-
+        // Certifica-se de que a camada raster não seja gerenciada aqui
         Object.keys(this.layers).forEach(layerName => {
             const layer = this.layers[layerName].layerGroup;
             if (layer && this.map.hasLayer(layer)) {
                 this.map.removeLayer(layer);
             }
         });
-
+    
+        // Adiciona camadas GeoJSON selecionadas
         document.querySelectorAll('#selector input[type="checkbox"]:not([value="static-image"]):checked').forEach(checkbox => {
             const layerValue = checkbox.value;
-            const layer = this.layers[layerValue].layerGroup;
+            const layer = this.layers[layerValue]?.layerGroup;
             if (layer) {
                 layer.addTo(this.map);
             }
         });
-
+    
         this.updateLegend();
     }
+    
 
     setupCheckboxListeners() {
         const allCheckboxes = document.querySelectorAll('#selector input[type="checkbox"]');

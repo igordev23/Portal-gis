@@ -5,9 +5,11 @@ import { SwipeController } from './SwipeController.js';
 import ElevationService from './ElevationService.js';
 
 export class MapController {
-    constructor(mapElementId) {
-        this.initialCenter = [-2.99241, -45.40649];
-        this.initialZoom = 10;
+    constructor(mapElementId) { 
+
+
+        this.initialCenter = [-4.45800, -47.52531];
+        this.initialZoom = 14;
         this.pontos = [];
         this.polyline = null;
         this.elevationService = new ElevationService();
@@ -48,11 +50,19 @@ export class MapController {
         // Adicionando os controladores
         this.measurementController = new MeasurementController(this.map);
 
-        const imageBounds = [[-2.992508, -45.369120], [-2.954409, -45.314294]];
-        this.staticImageLayer = L.imageOverlay('raster_jpeg.jpeg', imageBounds, {
-            opacity: 0.8,
-            attribution: '© Raster Image'
-        });
+       
+    // Adicionando a imagem overlay
+const imageBounds = [[-4.474798665, -47.552014662], [-4.433812159, -47.506472635]];
+
+// Link direto da imagem no Google Drive
+const imageUrl = 'https://drive.google.com/uc?export=download&id=1wGLpp6Yi8BDAIsSfXXqktFIDfCrYK1A2';
+
+this.staticImageLayer = L.imageOverlay(imageUrl, imageBounds, {
+    opacity: 0.8,
+    attribution: '© Raster Image'
+});
+
+
 
         this.geoJSONController = new GeoJSONController(this.map, this.staticImageLayer);
         this.geoJSONController.setupCheckboxListeners();
@@ -455,7 +465,7 @@ export class MapController {
 
     switchBaseLayer(provider, side = 'left') {
         let newLayer;
-
+    
         switch (provider) {
             case 'osm':
                 newLayer = this.osm;
@@ -475,17 +485,27 @@ export class MapController {
             case 'cartodb-dark-matter':
                 newLayer = this.cartoDB_DarkMatter;
                 break;
+            case 'raster':
+                // Carregando a imagem raster de forma assíncrona
+                setTimeout(() => {
+                    this.staticImageLayer.addTo(this.map);
+                }, 0);
+                newLayer = this.staticImageLayer;
+                break;
             default:
                 newLayer = this.osm;
         }
-
+    
         if (this.currentBaseLayer && this.map.hasLayer(this.currentBaseLayer)) {
             this.map.removeLayer(this.currentBaseLayer);
         }
-
+    
         this.currentBaseLayer = newLayer;
-        this.map.addLayer(newLayer);
-
+    
+        if (provider !== 'raster') {
+            this.map.addLayer(newLayer);
+        }
+    
         if (this.swipeController.isSwipeActive) {
             if (side === 'left') {
                 this.swipeController.leftMapLayer = newLayer;
@@ -495,6 +515,8 @@ export class MapController {
             this.swipeController.setMapLayers();
         }
     }
+    
+    
 
     disableSwipeController() {
         this.swipeController.disableSwipe();

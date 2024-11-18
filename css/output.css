@@ -237,6 +237,72 @@
 1. Prevent padding and border from affecting element width. (https://github.com/mozdevs/cssremedy/issues/4)
 2. Allow adding a border to an element by just adding a border-width. (https://github.com/tailwindcss/tailwindcss/pull/116)
 */
+/* Contêiner da tabela e botão */
+.attributes-container {
+  position: relative;
+  max-height: 500px; /* Ajuste conforme necessário */
+  overflow: hidden; /* Impede a rolagem externa */
+}
+
+/* Botão de Fechar */
+.close-btn {
+  background: red;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  position: sticky;
+  top: -20px; /* Fixa o botão no topo, acima da tabela */
+  left: 800px; /* Ajuste a posição do botão */
+  z-index: 3; /* Garante que o botão fique acima da tabela */
+  width: 20px;
+}
+
+/* Wrapper para permitir a rolagem da tabela */
+.table-wrapper {
+  max-height: 400px; /* Ajuste conforme necessário */
+  overflow-y: auto; /* Permite a rolagem vertical da tabela */
+  display: block;
+}
+
+/* Estilo da tabela */
+.attributes-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  text-align: left;
+}
+
+/* Estilo das células da tabela */
+.attributes-table th,
+.attributes-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
+
+/* Estilo do cabeçalho fixo */
+.attributes-table th {
+  background-color: #00b0fc;
+  font-weight: bold;
+  position: sticky;
+  top: 0; /* Fixa o cabeçalho no topo */
+  z-index: 2; /* Garante que o cabeçalho fique acima do conteúdo */
+}
+
+/* Estilo do hover nas linhas */
+.attribute-row:hover {
+  background-color: #f1f1f1;
+  cursor: pointer;
+}
+
+/* Ajuste adicional para o cabeçalho da tabela */
+.attributes-container {
+  position: relative; /* Necessário para o funcionamento do sticky no close-btn */
+}
+
+
+
+
 
   /* Garantir que o mapa ocupe toda a tela */
   #map {

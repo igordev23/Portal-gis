@@ -55,7 +55,7 @@ export class MapController {
 const imageBounds = [[-4.474798665, -47.552014662], [-4.433812159, -47.506472635]];
 
 // Link direto da imagem no Google Drive
-const imageUrl = 'https://drive.google.com/uc?export=download&id=1wGLpp6Yi8BDAIsSfXXqktFIDfCrYK1A2';
+const imageUrl = '../assets/ORTOFOTO.png';
 
 this.staticImageLayer = L.imageOverlay(imageUrl, imageBounds, {
     opacity: 0.8,

@@ -279,33 +279,57 @@ export class GeoJSONController {
         this.legendContent.innerHTML = '';
     
         Object.keys(this.layers).forEach(layerName => {
-            const geometryType = this.layers[layerName].geometryType;
+            const { geometryType } = this.layers[layerName];
     
-            let color = ''; // Cor apropriada, dependendo do tipo de geometria
+            // Obtém informações de estilo
+            let fillColor = this.colors[layerName] || '#FFFFFF'; // Cor de preenchimento
+            let strokeColor = this.strokeColors[layerName] || '#000000'; // Cor da borda
+            let lineStyle = this.lineStyle[layerName] || 'solid'; // Estilo da linha
+            let dashArray = '';
     
-            if (geometryType === 'LineString' || geometryType === 'MultiLineString') {
-                color = this.strokeColors[layerName] || '#000000'; // Cor de linha (stroke)
-            } else if (geometryType === 'Polygon' || geometryType === 'MultiPolygon') {
-                color = this.colors[layerName] || '#FFFFFF'; // Cor de preenchimento (fill)
-            } else {
-                color = this.colors[layerName] || '#000000'; // Default para pontos ou outros tipos
+            // Define dashArray com base no estilo da linha
+            if (lineStyle === 'dashed') {
+                dashArray = '5, 5';
+            } else if (lineStyle === 'dotted') {
+                dashArray = '1, 5';
             }
     
+            // Criação do item da legenda
             const legendItem = document.createElement('div');
             let shapeIcon = '';
     
+            // Define o ícone para cada tipo de geometria
             if (geometryType === 'Point' || geometryType === 'MultiPoint') {
-                shapeIcon = `<span style="display:inline-block;width:15px;height:15px;border-radius:50%;background-color:${color};margin-right:5px;"></span>`;
+                shapeIcon = `<span style="display:inline-block;width:15px;height:15px;border-radius:50%;background-color:${fillColor};margin-right:5px;"></span>`;
             } else if (geometryType === 'LineString' || geometryType === 'MultiLineString') {
-                shapeIcon = `<span style="display:inline-block;width:20px;height:2px;background-color:${color};margin-right:5px;"></span>`;
+                shapeIcon = `
+                    <span style="
+                        display:inline-block;
+                        width:20px;
+                        height:2px;
+                        background-color:${strokeColor};
+                        ${dashArray ? `border-top: 2px dashed ${strokeColor};` : ''}
+                        margin-right:5px;">
+                    </span>`;
             } else if (geometryType === 'Polygon' || geometryType === 'MultiPolygon') {
-                shapeIcon = `<span style="display:inline-block;width:15px;height:15px;background-color:${color};border: 2px solid ${this.strokeColors[layerName] || '#000000'};margin-right:5px;"></span>`;
+                shapeIcon = `
+                    <span style="
+                        display:inline-block;
+                        width:15px;
+                        height:15px;
+                        background-color:${fillColor};
+                        border: 2px ${lineStyle === 'solid' ? 'solid' : 'dashed'} ${strokeColor};
+                        ${lineStyle === 'dotted' ? 'border-style: dotted;' : ''}
+                        margin-right:5px;">
+                    </span>`;
             }
     
+            // Adiciona o nome da camada à legenda
             legendItem.innerHTML = `${shapeIcon} ${layerName}`;
             this.legendContent.appendChild(legendItem);
         });
     }
+    
     
 
     removeAllLayers() {

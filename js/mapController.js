@@ -331,61 +331,73 @@ export class MapController {
         infoContainer.appendChild(layerTitle);
     
         selectedLayers.forEach((info) => {
+            const { fillColor, strokeColor, lineStyle, dashArray } = info.styles;
+        
             const layerInfoContainer = document.createElement('div');
             layerInfoContainer.style.display = 'flex';
             layerInfoContainer.style.alignItems = 'center';
             layerInfoContainer.style.marginBottom = '10px';
             layerInfoContainer.style.width = '100%';
-    
-            const color = info.legend || '#000000';
-    
+        
             const geometrySVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
             geometrySVG.setAttribute("width", "24");
             geometrySVG.setAttribute("height", "24");
             geometrySVG.style.marginRight = "10px";
-    
+        
             let shapeElement;
-            if (info.geometryType.includes('MultiPolygon')) {
+            if (info.geometryType.includes('Polygon')) {
                 shapeElement = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                 shapeElement.setAttribute("width", "20");
                 shapeElement.setAttribute("height", "20");
-                shapeElement.setAttribute("fill", color);
-                shapeElement.setAttribute("stroke", color);
-                shapeElement.setAttribute("stroke-width", "2");
-            } else if (info.geometryType.includes('MultiLine')) {
+                shapeElement.setAttribute("fill", fillColor);
+                shapeElement.setAttribute("stroke", strokeColor);
+                shapeElement.setAttribute("stroke-width", "3");
+                if (lineStyle === 'dotted') {
+                    shapeElement.setAttribute("stroke-dasharray", "3,5");
+                } else if (lineStyle === 'dashed') {
+                    shapeElement.setAttribute("stroke-dasharray", "5,5");
+                }
+            } else if (info.geometryType.includes('Line')) {
                 shapeElement = document.createElementNS("http://www.w3.org/2000/svg", "line");
                 shapeElement.setAttribute("x1", "0");
                 shapeElement.setAttribute("y1", "12");
                 shapeElement.setAttribute("x2", "20");
                 shapeElement.setAttribute("y2", "12");
-                shapeElement.setAttribute("stroke", color);
-                shapeElement.setAttribute("stroke-width", "2");
-                shapeElement.setAttribute("fill", "none");
-            } else if (info.geometryType.includes('MultiPoint')) {
+                shapeElement.setAttribute("stroke", strokeColor);
+                shapeElement.setAttribute("stroke-width", "3");
+                if (lineStyle === 'dotted') {
+                    shapeElement.setAttribute("stroke-dasharray", "3,5");
+                } else if (lineStyle === 'dashed') {
+                    shapeElement.setAttribute("stroke-dasharray", "5,5");
+                }
+            } else if (info.geometryType.includes('Point')) {
                 shapeElement = document.createElementNS("http://www.w3.org/2000/svg", "circle");
                 shapeElement.setAttribute("cx", "10");
                 shapeElement.setAttribute("cy", "10");
                 shapeElement.setAttribute("r", "5");
-                shapeElement.setAttribute("fill", color);
-                shapeElement.setAttribute("stroke", color);
-                shapeElement.setAttribute("stroke-width", "1");
+                shapeElement.setAttribute("fill", fillColor);
+                shapeElement.setAttribute("stroke", strokeColor);
+                shapeElement.setAttribute("stroke-width", "3");
+                shapeElement.setAttribute("stroke-dasharray", "3");
             }
-    
+        
             if (shapeElement) {
                 geometrySVG.appendChild(shapeElement);
             }
-    
+        
             layerInfoContainer.appendChild(geometrySVG);
-    
+        
             const layerInfoText = document.createElement('span');
-            layerInfoText.textContent = ` Camada: ${info.layer} `;
+            layerInfoText.textContent = `Camada: ${info.layer}`;
             layerInfoText.style.marginLeft = '8px';
             layerInfoText.style.flex = '1';
             layerInfoText.style.textAlign = 'left';
-    
+        
             layerInfoContainer.appendChild(layerInfoText);
             infoContainer.appendChild(layerInfoContainer);
         });
+        
+        
     
         // Adiciona a data e a hora ao final das legendas
         const dateInfo = document.createElement('div');
@@ -438,26 +450,48 @@ export class MapController {
     }
     
   
-  getSelectedLayersInfo() {
-    const layersInfo = [];
+    getSelectedLayersInfo() {
+        const layersInfo = [];
     
-    // Verifica as camadas ativas no GeoJSONController
-    Object.keys(this.geoJSONController.layers).forEach(layerName => {
-        const layer = this.geoJSONController.layers[layerName];
-        
-        // Verifica se a camada está visível no mapa
-        if (this.map.hasLayer(layer.layerGroup)) {
-            const layerInfo = {
-                layer: layerName,
-                legend: this.geoJSONController.colors[layerName] || 'Legenda não disponível',
-                geometryType: layer.geometryType
-            };
-            layersInfo.push(layerInfo);
-        }
-    });
+        // Itera sobre todas as camadas registradas no GeoJSONController
+        Object.keys(this.geoJSONController.layers).forEach(layerName => {
+            const layer = this.geoJSONController.layers[layerName];
     
-    return layersInfo;
-}
+            // Verifica se a camada está visível no mapa
+            if (this.map.hasLayer(layer.layerGroup)) {
+                const geometryType = layer.geometryType;
+    
+                // Obtém informações de estilo
+                const fillColor = this.geoJSONController.colors[layerName] || '#FFFFFF';
+                const strokeColor = this.geoJSONController.strokeColors[layerName] || '#000000';
+                const lineStyle = this.geoJSONController.lineStyle[layerName] || 'solid';
+    
+                // Define dashArray com base no estilo da linha
+                let dashArray = '';
+                if (lineStyle === 'dashed') {
+                    dashArray = '5, 5';
+                } else if (lineStyle === 'dotted') {
+                    dashArray = '1, 5';
+                }
+    
+                // Adiciona informações completas da camada
+                layersInfo.push({
+                    layer: layerName,
+                    geometryType,
+                    styles: {
+                        fillColor,
+                        strokeColor,
+                        lineStyle,
+                        dashArray,
+                    },
+                });
+            }
+        });
+    
+        return layersInfo;
+    }
+    
+    
 
     resetMapView() {
         this.map.setView(this.initialCenter, this.initialZoom);

@@ -157,7 +157,7 @@ document.getElementById('map-provider-menu').innerHTML += `
   <div class="provider-option" data-provider="stamen-watercolor">Stamen Watercolor</div>
   <div class="provider-option" data-provider="esri-world-imagery">Esri World Imagery</div>
   <div class="provider-option" data-provider="cartodb-dark-matter">CartoDB Dark Matter</div>
-  <div class="provider-option" data-provider="raster">Raster</div>
+  <div class="provider-option" data-provider="raster">Ortofoto</div>
 `;
 
 // Usa delegação de eventos para as opções do menu de provedores

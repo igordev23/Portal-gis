@@ -55,7 +55,7 @@ export class MapController {
 const imageBounds = [[-4.474798665, -47.552014662], [-4.433812159, -47.506472635]];
 
 // Link direto da imagem no Google Drive
-const imageUrl = '../ORTOFOTO.png';
+const imageUrl = '../ORTOFOTO.jpeg';
 
 this.staticImageLayer = L.imageOverlay(imageUrl, imageBounds, {
     opacity: 0.8,
@@ -290,7 +290,7 @@ this.staticImageLayer = L.imageOverlay(imageUrl, imageBounds, {
     
         // Cria o texto do título entre as imagens
         const titleText = document.createElement('span');
-        titleText.textContent = 'PEDRO DO ROSARIO - MA';
+        titleText.textContent = 'ITINGA - MA';
         titleText.style.margin = '0 5px';
     
         // Cria a imagem para o final do título

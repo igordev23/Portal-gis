@@ -3,12 +3,16 @@ export class GeoJSONController {
         this.map = map;
         this.layers = {};
         this.colors = {};
+        this.strokeColors = {};
+        this.lineStyle = {};
+        this.strokeWidth =  {};
+        this.fillOpacity = {};
         this.highlightColor = '#FF0000'; // Cor para destaque
         this.staticImageLayer = staticImageLayer;
         this.legendContent = document.getElementById('legend-content');
         this.selectorContainer = document.getElementById('selector');
-        this.attributesContainer = document.getElementById('attributes-container'); // Container para exibir as tabelas de atributos
-        this.currentHighlightedLayer = null; // Camada atualmente destacada
+        this.attributesContainer = document.getElementById('attributes-container');
+        this.currentHighlightedLayer = null;
 
         if (!this.selectorContainer) {
             console.error('Container de seleção de camadas não encontrado!');
@@ -32,48 +36,76 @@ export class GeoJSONController {
 
     updateWithFetchedData(dados) {
         this.updateLayerSelection(dados); // Atualiza os checkboxes
-
+    
         dados.forEach(tabela => {
             const layerGroup = L.layerGroup();
             const geometryType = tabela.dados[0]?.geom?.type || 'Desconhecido';
-
+    
             tabela.dados.forEach(item => {
                 if (item.geom) {
-                    const layerColor = this.colors[tabela.nome] || this.getRandomColor();
-                    this.colors[tabela.nome] = layerColor;
+                    // Define os atributos de estilo, usando valores padrão se não forem fornecidos
+                    const fillColor = item.fill_color || this.colors[tabela.nome] || this.getRandomColor();
+                    const strokeColor = item.stroke_color || this.strokeColors[tabela.nome]  || '#000000'; // Cor padrão para a borda
+                    const strokeWidth = item.stroke_width ||this.strokeWidth[tabela.nome] ||3; // Largura padrão da linha
+                    const lineStyle = item.line_style || this.lineStyle[tabela.nome] || 'solid'; // Estilo padrão da linha
+                    const fillOpacity = item.fill_opacity || this.fillOpacity[tabela.nome]|| 1; // Opacidade padrão para preenchimento
+                    
+                    this.colors[tabela.nome] = fillColor; // Armazena a cor de preenchimento
+                    this.strokeColors[tabela.nome] = strokeColor;
+                    this.lineStyle[tabela.nome] = lineStyle;
+                    this.strokeWidth[tabela.nome] = strokeWidth;
+                    this.fillOpacity[tabela.nome] = fillOpacity;
 
                     const geoJsonLayer = L.geoJSON(item.geom, {
                         pointToLayer: (feature, latlng) => {
                             return L.circleMarker(latlng, {
                                 radius: 4,
-                                fillColor: layerColor,
-                                color: "#000",
-                                weight: 1,
-                                opacity: 1,
-                                fillOpacity: 0.8
+                                fillColor: fillColor,
+                                color: strokeColor,
+                                weight: strokeWidth,
+                                fillOpacity: fillOpacity // Usando fillOpacity aqui
                             });
                         },
-                        style: {
-                            color: layerColor,
-                            weight: 2,
-                            fillOpacity: 0.5
+                        style: (feature) => {
+                            let dashArray = '';
+                            if (lineStyle === 'dashed') {
+                                dashArray = '5, 5';
+                            } else if (lineStyle === 'dotted') {
+                                dashArray = '1, 5';
+                            }
+    
+                            return {
+                                color: strokeColor,
+                                weight: strokeWidth,
+                                fillColor: fillColor,
+                                fillOpacity: fillOpacity, // Usando fillOpacity aqui
+                                dashArray: dashArray
+                            };
                         }
                     });
-
-                    const fclass = item.fclass || 'N/A';
-                    const name = item.name || 'N/A';
-                    geoJsonLayer.bindPopup(`<strong>${tabela.nome}</strong><br>Classe: ${fclass}<br>Nome: ${name}`);
-
+    
+                    geoJsonLayer.bindPopup(() => {
+                        // Extrai os atributos da feição
+                        const attributes = Object.keys(item)
+                            .filter(key => key !== 'geom') // Ignorar a geometria
+                            .map(key => `<strong>${key}:</strong> ${item[key] || 'N/A'}`)
+                            .join('<br>');
+                    
+                        return `<strong>${tabela.nome}</strong><br>${attributes}`;
+                    });
+                    
                     // Associar o item ao geoJsonLayer para referência futura
                     item.geoJsonLayer = geoJsonLayer;
-
+    
                     layerGroup.addLayer(geoJsonLayer);
                 }
             });
-
+    
             this.layers[tabela.nome] = { layerGroup, geometryType, dados: tabela.dados };
         });
     }
+    
+    
 
     updateLayerSelection(dados) {
         this.selectorContainer.innerHTML = `
@@ -110,110 +142,171 @@ export class GeoJSONController {
     }
 
     generateAttributesTable(dados) {
+        if (dados.length === 0) return '<p>Nenhum dado disponível.</p>';
+    
+        // Obtenha todos os nomes de atributos de forma dinâmica
+        const allAttributes = Object.keys(dados[0]);
+    
+        // Crie o cabeçalho da tabela dinamicamente
         let tableHtml = `
-        <div class="attributes-container">
-            <button class="close-btn">&times;</button>
-            <div class="table-wrapper">
-                <table class="attributes-table">
-                    <thead>
-                        <tr><th>ID</th><th>Classe</th><th>Nome</th></tr>
-                    </thead>
-                    <tbody>
+            <div class="attributes-container">
+                <button class="close-btn">&times;</button>
+                <div class="table-wrapper">
+                    <table class="attributes-table">
+                        <thead>
+                            <tr>${allAttributes.map(attr => `<th>${attr}</th>`).join('')}</tr>
+                        </thead>
+                        <tbody>
         `;
     
-    dados.forEach(linha => {
+        // Popule todas as linhas da tabela com os atributos
+        dados.forEach(linha => {
+            tableHtml += `
+                <tr class="attribute-row" data-id="${linha.id}">
+                    ${allAttributes.map(attr => `<td>${linha[attr] || ''}</td>`).join('')}
+                </tr>
+            `;
+        });
+    
         tableHtml += `
-            <tr class="attribute-row" data-id="${linha.id}">
-                <td>${linha.id || ''}</td>
-                <td>${linha.fclass || ''}</td>
-                <td>${linha.name || ''}</td>
-            </tr>
-        `;
-    });
-    
-    tableHtml += `
-                    </tbody>
-                </table>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
-    `;
+        `;
     
-    return tableHtml;
-}
+        return tableHtml;
+    }
+    
 
     setupDetailsListeners(dados) {
         document.querySelectorAll('.details-btn').forEach(button => {
             button.addEventListener('click', (event) => {
                 const checkboxId = event.target.id.replace('details-', '');
                 const tabelaSelecionada = dados.find(tabela => `layer-${tabela.nome}` === checkboxId);
-                
+    
                 if (tabelaSelecionada) {
+                    // Gere e insira a tabela de atributos com todos os dados
                     const attributesTable = this.generateAttributesTable(tabelaSelecionada.dados);
                     this.attributesContainer.innerHTML = attributesTable;
-
+    
+                    // Configura o botão de fechar
                     document.querySelector('.close-btn').addEventListener('click', () => {
                         this.attributesContainer.style.display = 'none';
                         this.attributesContainer.innerHTML = '';
                     });
-
-                    this.setupRowClickListener(tabelaSelecionada.dados); // Configura os cliques nas linhas da tabela
+    
+                    // Configura os cliques nas linhas da tabela
+                    this.setupRowClickListener(tabelaSelecionada.dados);
                 }
             });
         });
     }
-
+   
     setupRowClickListener(dados) {
+        // Variável para armazenar o timeout atual
+        let highlightTimeout;
+    
         document.querySelectorAll('.attribute-row').forEach(row => {
             row.addEventListener('click', (event) => {
                 const id = event.currentTarget.getAttribute('data-id');
                 const selectedFeature = dados.find(item => item.id == id);
     
                 if (selectedFeature) {
-                    // Limpar destaque anterior
-                    if (this.currentHighlightedLayer) {
-                        this.currentHighlightedLayer.setStyle({ color: this.colors[selectedFeature.fclass] });
+                    // Cancelar timeout anterior, se existir
+                    if (highlightTimeout) {
+                        clearTimeout(highlightTimeout);
                     }
     
-                    // Aplicar novo destaque
-                    this.currentHighlightedLayer = selectedFeature.geoJsonLayer;
-                    this.currentHighlightedLayer.setStyle({ color: this.highlightColor });
+                    // Remover o destaque anterior, se existir
+                    if (this.currentHighlightedLayer) {
+                        const originalOptions = this.currentHighlightedLayer.options;
+                        this.currentHighlightedLayer.setStyle({
+                            fillColor: originalOptions.originalFillColor, // Cor de preenchimento original
+                            color: originalOptions.originalColor,         // Cor da borda original
+                            fillOpacity: originalOptions.originalFillOpacity, // Opacidade de preenchimento original
+                            weight: originalOptions.originalStrokeWidth  // Largura da borda original
+                        });
+                    }
     
-                    // Fazer zoom na feição
+                    // Atualizar a camada atual para destaque
+                    this.currentHighlightedLayer = selectedFeature.geoJsonLayer;
+    
+                    // Salvar os estilos originais, caso ainda não tenham sido salvos
+                    const layerOptions = this.currentHighlightedLayer.options;
+                    if (!layerOptions.originalFillColor) {
+                        layerOptions.originalFillColor = this.colors[selectedFeature.nome] || layerOptions.fillColor || '#3388ff';
+                        layerOptions.originalColor = this.strokeColors[selectedFeature.nome] || layerOptions.color || '#3388ff';
+                        layerOptions.originalFillOpacity = this.fillOpacity[selectedFeature.nome] || layerOptions.fillOpacity || 0.2;
+                        layerOptions.originalStrokeWidth = this.strokeWidth[selectedFeature.nome] || layerOptions.weight || 1;
+                    }
+    
+                    // Aplicar o destaque temporário
+                    this.currentHighlightedLayer.setStyle({
+                        fillColor: 'yellow', // Cor de preenchimento para destaque
+                        color: 'red',        // Cor da borda para destaque
+                        fillOpacity: 0.7,    // Opacidade maior para destacar
+                        weight: 5            // Largura da borda maior para destaque
+                    });
+    
+                    // Ajustar o mapa para a feição selecionada
                     const bounds = this.currentHighlightedLayer.getBounds();
                     this.map.fitBounds(bounds);
     
-                    // Após 5 segundos, restaurar a cor original
-                    setTimeout(() => {
-                        this.currentHighlightedLayer.setStyle({ color: this.colors[selectedFeature.fclass] });
-                    }, 5000); // 5000 milissegundos = 5 segundos
+                    // Configurar a remoção do destaque após 5 segundos
+                    highlightTimeout = setTimeout(() => {
+                        if (this.currentHighlightedLayer) {
+                            const originalOptions = this.currentHighlightedLayer.options;
+                            this.currentHighlightedLayer.setStyle({
+                                fillColor: originalOptions.originalFillColor, // Restaurar cor de preenchimento original
+                                color: originalOptions.originalColor,         // Restaurar cor da borda original
+                                fillOpacity: originalOptions.originalFillOpacity, // Restaurar opacidade original
+                                weight: originalOptions.originalStrokeWidth  // Restaurar largura da borda original
+                            });
+                            this.currentHighlightedLayer = null; // Limpa a referência
+                        }
+                    }, 5000);
                 }
             });
         });
     }
     
+    
+    
+    
 
     updateLegend() {
         this.legendContent.innerHTML = '';
-
+    
         Object.keys(this.layers).forEach(layerName => {
-            const color = this.colors[layerName];
             const geometryType = this.layers[layerName].geometryType;
-
+    
+            let color = ''; // Cor apropriada, dependendo do tipo de geometria
+    
+            if (geometryType === 'LineString' || geometryType === 'MultiLineString') {
+                color = this.strokeColors[layerName] || '#000000'; // Cor de linha (stroke)
+            } else if (geometryType === 'Polygon' || geometryType === 'MultiPolygon') {
+                color = this.colors[layerName] || '#FFFFFF'; // Cor de preenchimento (fill)
+            } else {
+                color = this.colors[layerName] || '#000000'; // Default para pontos ou outros tipos
+            }
+    
             const legendItem = document.createElement('div');
             let shapeIcon = '';
-
+    
             if (geometryType === 'Point' || geometryType === 'MultiPoint') {
                 shapeIcon = `<span style="display:inline-block;width:15px;height:15px;border-radius:50%;background-color:${color};margin-right:5px;"></span>`;
             } else if (geometryType === 'LineString' || geometryType === 'MultiLineString') {
                 shapeIcon = `<span style="display:inline-block;width:20px;height:2px;background-color:${color};margin-right:5px;"></span>`;
             } else if (geometryType === 'Polygon' || geometryType === 'MultiPolygon') {
-                shapeIcon = `<span style="display:inline-block;width:15px;height:15px;background-color:${color};border: 2px solid ${color};margin-right:5px;"></span>`;
+                shapeIcon = `<span style="display:inline-block;width:15px;height:15px;background-color:${color};border: 2px solid ${this.strokeColors[layerName] || '#000000'};margin-right:5px;"></span>`;
             }
-
+    
             legendItem.innerHTML = `${shapeIcon} ${layerName}`;
             this.legendContent.appendChild(legendItem);
         });
     }
+    
 
     removeAllLayers() {
         Object.keys(this.layers).forEach(layerName => {

@@ -520,11 +520,27 @@ export class MapController {
                 newLayer = this.cartoDB_DarkMatter;
                 break;
             case 'raster':
-                // Carregando a imagem raster de forma assíncrona
+                // Carregar a camada raster
                 setTimeout(() => {
                     this.staticImageLayer.addTo(this.map);
                 }, 0);
                 newLayer = this.staticImageLayer;
+    
+                // Carregar e adicionar a camada GeoJSON
+                fetch('../MN_ENTORNO.geojson')
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Erro ao carregar o arquivo GeoJSON');
+                        }
+                        return response.json();
+                    })
+                    .then(geojsonData => {
+                        const geojsonLayer = L.geoJSON(geojsonData, {
+                            style: { color: 'blue' }, // Personalize o estilo se necessário
+                        }).addTo(this.map);
+                        this.geojsonLayer = geojsonLayer; // Armazena a camada GeoJSON para manipulação futura
+                    })
+                    .catch(error => console.error('Erro ao carregar o GeoJSON:', error));
                 break;
             default:
                 newLayer = this.osm;

@@ -233,27 +233,9 @@ async function carregarDados() {
   }
 }
 
-// Exibir ou ocultar a tabela ao clicar no botão
-document.getElementById('attribute-table-btn').addEventListener('click', () => {
-  const dadosDiv = document.getElementById('dados');
-  if (dadosDiv.style.display === 'none' || dadosDiv.style.display === '') {
-      carregarDados();  // Carregar os dados quando o botão for clicado
-      dadosDiv.style.display = 'block';
-  } else {
-      dadosDiv.style.display = 'none';
-  }
-});
 
 
- // Exibe ou oculta a linha divisória ao clicar no botão (se ainda desejar manter essa funcionalidade)
- this.swipeToolBtn.addEventListener('click', () => {
-  if (this.dividerLine.style.display === 'none' || this.dividerLine.style.display === '') {
-      this.dividerLine.style.left = '50%'; // Inicializa no meio
-      this.dividerLine.style.display = 'block';
-  } else {
-      this.dividerLine.style.display = 'none';
-  }
-});
+ 
 
 
 

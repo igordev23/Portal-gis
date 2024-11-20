@@ -17,13 +17,7 @@ export class DataFetcher {
             // Atualizar o GeoJSONController com os novos dados
             this.geoJSONController.updateWithFetchedData(dados);
 
-            // Montar a tabela
-            let tabelaHtml = '<table><thead><tr><th>Nome da Tabela</th><th>Dados</th></tr></thead><tbody>';
-            dados.forEach(tabela => {
-                tabelaHtml += `<tr><td>${tabela.nome}</td><td>${JSON.stringify(tabela.dados)}</td></tr>`;
-            });
-            tabelaHtml += '</tbody></table>';
-
+           
             
 
         } catch (erro) {

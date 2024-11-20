@@ -3118,3 +3118,14 @@ video {
     flex-direction: row;
   }
 }
+
+
+.custom-tooltip {
+  color: black; /* Cor do texto */
+  font-size: 12px; /* Tamanho da fonte */
+  font-weight: bold; /* Texto em negrito */
+  text-shadow: 1px 1px 2px white; /* Sombra sutil para destacar o texto */
+  background: white; /* Sem fundo */
+  border: none; /* Sem borda */
+  padding: 0; /* Sem preenchimento */
+}

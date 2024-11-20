@@ -536,7 +536,22 @@ export class MapController {
                     })
                     .then(geojsonData => {
                         const geojsonLayer = L.geoJSON(geojsonData, {
-                            style: { color: 'blue' }, // Personalize o estilo se necessário
+                            style: {
+                                color: 'black', // Define a cor das bordas como preto
+                                weight: 2, // Espessura das bordas
+                                fillColor: 'white', // Cor de preenchimento
+                                fillOpacity: 1 // Transparência do preenchimento
+                            },
+                            onEachFeature: (feature, layer) => {
+                                if (feature.properties && feature.properties.NM_MUN) {
+                                    // Adiciona o nome do município como um rótulo fixo
+                                    layer.bindTooltip(feature.properties.NM_MUN, {
+                                        permanent: true, // Mantém o rótulo fixo no mapa
+                                        direction: 'center', // Centraliza o texto sobre o polígono
+                                        className: 'custom-tooltip' // Classe CSS para estilizar os rótulos
+                                    });
+                                }
+                            }
                         }).addTo(this.map);
                         this.geojsonLayer = geojsonLayer; // Armazena a camada GeoJSON para manipulação futura
                     })

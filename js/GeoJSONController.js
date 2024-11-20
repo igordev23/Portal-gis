@@ -85,14 +85,34 @@ export class GeoJSONController {
                     });
     
                     geoJsonLayer.bindPopup(() => {
-                        // Extrai os atributos da feição
-                        const attributes = Object.keys(item)
-                            .filter(key => key !== 'geom') // Ignorar a geometria
-                            .map(key => `<strong>${key}:</strong> ${item[key] || 'N/A'}`)
+                        // Lista de atributos que devem ser ignorados
+                        const ignoredAttributes = [
+                            'geom', 'stroke_color', 'fill_color', 'stroke_width', 
+                            'line_style', 'fill_opacity', 'geoJsonLayer'
+                        ];
+                    
+                        // Identifique os atributos válidos
+                        const validAttributes = Object.keys(item)
+                            .filter(attr => 
+                                !ignoredAttributes.includes(attr) && 
+                                item[attr] !== null && item[attr] !== undefined && 
+                                item[attr].toString().trim() !== '' && 
+                                item[attr] !== 0
+                            );
+                    
+                        // Caso não haja atributos válidos, retorne uma mensagem padrão
+                        if (validAttributes.length === 0) {
+                            return `<strong>${tabela.nome}</strong><br><em>Nenhum atributo disponível.</em>`;
+                        }
+                    
+                        // Formate os atributos válidos
+                        const attributes = validAttributes
+                            .map(attr => `<strong>${attr}:</strong> ${item[attr]}`)
                             .join('<br>');
                     
                         return `<strong>${tabela.nome}</strong><br>${attributes}`;
                     });
+                    
                     
                     // Associar o item ao geoJsonLayer para referência futura
                     item.geoJsonLayer = geoJsonLayer;
@@ -140,30 +160,51 @@ export class GeoJSONController {
             });
         });
     }
-
+   
     generateAttributesTable(dados) {
         if (dados.length === 0) return '<p>Nenhum dado disponível.</p>';
     
-        // Obtenha todos os nomes de atributos de forma dinâmica
-        const allAttributes = Object.keys(dados[0]);
+        // Lista de atributos que devem ser ignorados
+        const ignoredAttributes = [
+            'geom', 'stroke_color', 'fill_color', 'stroke_width', 
+            'line_style', 'fill_opacity', 'geoJsonLayer'
+        ];
     
-        // Crie o cabeçalho da tabela dinamicamente
+        // Identifique os atributos válidos: não ignorados e com valores significativos
+        const allAttributes = Object.keys(dados[0]);
+        const validAttributes = allAttributes.filter(attr => 
+            !ignoredAttributes.includes(attr) && 
+            dados.some(linha => {
+                const value = linha[attr];
+                return value !== null && value !== undefined && value.toString().trim() !== '' && value !== 0;
+            })
+        );
+    
+        // Caso não haja atributos válidos
+        if (validAttributes.length === 0) return '<p>Nenhum atributo disponível.</p>';
+    
+        // Crie o cabeçalho da tabela dinamicamente com atributos válidos
         let tableHtml = `
             <div class="attributes-container">
                 <button class="close-btn">&times;</button>
                 <div class="table-wrapper">
                     <table class="attributes-table">
                         <thead>
-                            <tr>${allAttributes.map(attr => `<th>${attr}</th>`).join('')}</tr>
+                            <tr>${validAttributes.map(attr => `<th>${attr}</th>`).join('')}</tr>
                         </thead>
                         <tbody>
         `;
     
-        // Popule todas as linhas da tabela com os atributos
+        // Popule todas as linhas da tabela, apenas com atributos válidos
         dados.forEach(linha => {
             tableHtml += `
                 <tr class="attribute-row" data-id="${linha.id}">
-                    ${allAttributes.map(attr => `<td>${linha[attr] || ''}</td>`).join('')}
+                    ${validAttributes.map(attr => {
+                        const value = linha[attr];
+                        return value !== null && value !== undefined && value.toString().trim() !== '' && value !== 0
+                            ? `<td>${value}</td>`
+                            : '<td></td>'; // Preencha células vazias para manter a estrutura
+                    }).join('')}
                 </tr>
             `;
         });
@@ -177,6 +218,7 @@ export class GeoJSONController {
     
         return tableHtml;
     }
+    
     
 
     setupDetailsListeners(dados) {

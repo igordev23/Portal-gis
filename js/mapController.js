@@ -535,6 +535,10 @@ export class MapController {
                         return response.json();
                     })
                     .then(geojsonData => {
+                        // Verifica se há uma camada GeoJSON carregada e remove antes de adicionar uma nova
+                        if (this.geojsonLayer && this.map.hasLayer(this.geojsonLayer)) {
+                            this.map.removeLayer(this.geojsonLayer);
+                        }
                         const geojsonLayer = L.geoJSON(geojsonData, {
                             style: {
                                 color: 'black', // Define a cor das bordas como preto
@@ -561,8 +565,13 @@ export class MapController {
                 newLayer = this.osm;
         }
     
+        // Remove a camada base atual e a camada GeoJSON (se aplicável)
         if (this.currentBaseLayer && this.map.hasLayer(this.currentBaseLayer)) {
             this.map.removeLayer(this.currentBaseLayer);
+        }
+        if (this.geojsonLayer && provider !== 'raster' && this.map.hasLayer(this.geojsonLayer)) {
+            this.map.removeLayer(this.geojsonLayer);
+            this.geojsonLayer = null; // Limpa a referência à camada GeoJSON
         }
     
         this.currentBaseLayer = newLayer;
@@ -580,6 +589,7 @@ export class MapController {
             this.swipeController.setMapLayers();
         }
     }
+    
     
     
 

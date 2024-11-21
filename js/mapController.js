@@ -98,8 +98,8 @@ export class MapController {
         const modal = document.getElementById("elevation-modal");
         modal.style.display = "block";
     
-        const canvas = document.getElementById('elevation-chart');
-        const ctx = canvas.getContext('2d');
+        const canvas = document.getElementById("elevation-chart");
+        const ctx = canvas.getContext("2d");
     
         // Destrói o gráfico existente, se houver
         if (this.chartInstance) {
@@ -107,27 +107,66 @@ export class MapController {
             this.chartInstance = null;
         }
     
-        // Cria uma nova instância do gráfico
+        // Cria um gráfico com as elevações reais
         this.chartInstance = new Chart(ctx, {
-            type: 'line',
+            type: "line",
             data: {
                 labels: dataElevacao.distancias,
-                datasets: [{
-                    label: 'Elevação (m)',
-                    data: dataElevacao.elevacoes,
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 2,
-                    fill: false
-                }]
+                datasets: [
+                    {
+                        label: "Elevação (m)",
+                        data: dataElevacao.elevacoes,
+                        borderColor: "rgba(75, 192, 192, 1)",
+                        borderWidth: 2,
+                        fill: false,
+                        pointRadius: 0, // Remove as bolinhas
+                        tension: 0.3, // Suaviza a linha
+                    },
+                ],
             },
             options: {
                 scales: {
-                    x: { title: { display: true, text: 'Distância (m)' }},
-                    y: { title: { display: true, text: 'Elevação (m)' }}
-                }
-            }
+                    x: {
+                        title: { display: true, text: "Distância (m)" },
+                    },
+                    y: {
+                        title: { display: true, text: "Elevação (m)" },
+                    },
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: "top",
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => `Elevação: ${context.raw} m`,
+                        },
+                    },
+                },
+            },
         });
+    
+        // Atualiza a distância total de acordo com a unidade selecionada
+        const unidadeSelect = document.getElementById("unidade-distancia");
+        unidadeSelect.addEventListener("change", () => {
+            const unidade = unidadeSelect.value;
+            const distancia =
+                unidade === "km"
+                    ? `${dataElevacao.distanciaTotalKm} km`
+                    : `${dataElevacao.distanciaTotalMetros} metros`;
+    
+            document.getElementById("distancia-final").textContent = `Distância total: ${distancia}`;
+        });
+    
+        // Dispara a primeira atualização para o valor inicial
+        unidadeSelect.dispatchEvent(new Event("change"));
     }
+    
+      
+    
+    
+    
     
     marcarPontos() {
         // Limpa o estado anterior
@@ -157,7 +196,13 @@ export class MapController {
     
     capturarPonto(event) {
         const { lat, lng } = event.latlng;
-        const marker = L.marker([lat, lng]).addTo(this.map);
+        const marker = L.marker([lat, lng], { 
+            icon: L.icon({
+                iconUrl: 'https://www.svgrepo.com/show/202759/line-graphic-line-chart.svg', // Exemplo de ícone customizado
+                iconSize: [25, 25],
+                iconAnchor: [12, 25]
+            })
+        }).addTo(this.map);
     
         // Salva o marcador para remoção futura, se necessário
         this.marcadores = this.marcadores || [];
@@ -166,6 +211,7 @@ export class MapController {
         this.pontos.push([lat, lng]);
     
         if (this.pontos.length === 1) {
+            // Atualiza o alerta para informar que o ponto foi adicionado
             alert("Ponto inicial marcado. Clique no mapa para marcar o ponto final.");
         } else if (this.pontos.length === 2) {
             // Remove o evento "click" para evitar mais marcações
@@ -174,6 +220,7 @@ export class MapController {
             this.calcularElevacao();
         }
     }
+    
     
     desenharLinha() {
         this.polyline = L.polyline(this.pontos, { color: 'blue' }).addTo(this.map);
@@ -220,16 +267,17 @@ export class MapController {
     
     
     
-      async calcularElevacao() {
+    async calcularElevacao() {
         const [pontoInicial, pontoFinal] = this.pontos;
-        
+    
         try {
-          const dataElevacao = await this.elevationService.calcularElevacao(pontoInicial, pontoFinal);
-          this.abrirModal(dataElevacao);
+            const dataElevacao = await this.elevationService.calcularElevacao(pontoInicial, pontoFinal, 50); // 50 pontos para maior precisão
+            this.abrirModal(dataElevacao);
         } catch (error) {
-          alert(error.message);
+            alert(error.message);
         }
-      }
+    }
+    
 
 
 
@@ -589,7 +637,6 @@ export class MapController {
             this.swipeController.setMapLayers();
         }
     }
-    
     
     
 

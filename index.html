@@ -221,12 +221,21 @@ justify-content: space-between;">
 </select>
 </div>
 
-<!-- Modal para mostrar o gráfico de elevação -->
 <div id="elevation-modal" style="display: none;">
   <h3>Perfil de Elevação</h3>
   <canvas id="elevation-chart"></canvas>
+  <p>
+    Unidade:
+    <select id="unidade-distancia">
+      <option value="m">Metros</option>
+      <option value="km">Quilômetros</option>
+    </select>
+  </p>
+  <p id="distancia-final"></p>
   <button onclick="window.mapController.fecharModal()">Fechar</button>
 </div>
+
+
 
 
 

@@ -246,7 +246,6 @@ export class GeoJSONController {
     }
    
     setupRowClickListener(dados) {
-        // Variável para armazenar o timeout atual
         let highlightTimeout;
     
         document.querySelectorAll('.attribute-row').forEach(row => {
@@ -262,49 +261,31 @@ export class GeoJSONController {
     
                     // Remover o destaque anterior, se existir
                     if (this.currentHighlightedLayer) {
-                        const originalOptions = this.currentHighlightedLayer.options;
-                        this.currentHighlightedLayer.setStyle({
-                            fillColor: originalOptions.originalFillColor, // Cor de preenchimento original
-                            color: originalOptions.originalColor,         // Cor da borda original
-                            fillOpacity: originalOptions.originalFillOpacity, // Opacidade de preenchimento original
-                            weight: originalOptions.originalStrokeWidth  // Largura da borda original
-                        });
+                        this.map.removeLayer(this.currentHighlightedLayer);
+                        this.currentHighlightedLayer = null;
                     }
     
-                    // Atualizar a camada atual para destaque
-                    this.currentHighlightedLayer = selectedFeature.geoJsonLayer;
+                    // Criar uma nova camada para o destaque
+                    const highlightLayer = L.geoJSON(selectedFeature.geoJsonLayer.toGeoJSON(), {
+                        style: {
+                            fillColor: 'yellow', // Cor de preenchimento para destaque
+                            color: 'red',        // Cor da borda para destaque
+                            fillOpacity: 0.7,    // Opacidade maior para destacar
+                            weight: 5            // Largura da borda maior para destaque
+                        }
+                    }).addTo(this.map);
     
-                    // Salvar os estilos originais, caso ainda não tenham sido salvos
-                    const layerOptions = this.currentHighlightedLayer.options;
-                    if (!layerOptions.originalFillColor) {
-                        layerOptions.originalFillColor = this.colors[selectedFeature.nome] || layerOptions.fillColor || '#3388ff';
-                        layerOptions.originalColor = this.strokeColors[selectedFeature.nome] || layerOptions.color || '#3388ff';
-                        layerOptions.originalFillOpacity = this.fillOpacity[selectedFeature.nome] || layerOptions.fillOpacity || 0.2;
-                        layerOptions.originalStrokeWidth = this.strokeWidth[selectedFeature.nome] || layerOptions.weight || 1;
-                    }
-    
-                    // Aplicar o destaque temporário
-                    this.currentHighlightedLayer.setStyle({
-                        fillColor: 'yellow', // Cor de preenchimento para destaque
-                        color: 'red',        // Cor da borda para destaque
-                        fillOpacity: 0.7,    // Opacidade maior para destacar
-                        weight: 5            // Largura da borda maior para destaque
-                    });
+                    // Salvar a camada de destaque como atual
+                    this.currentHighlightedLayer = highlightLayer;
     
                     // Ajustar o mapa para a feição selecionada
-                    const bounds = this.currentHighlightedLayer.getBounds();
+                    const bounds = highlightLayer.getBounds();
                     this.map.fitBounds(bounds);
     
                     // Configurar a remoção do destaque após 5 segundos
                     highlightTimeout = setTimeout(() => {
                         if (this.currentHighlightedLayer) {
-                            const originalOptions = this.currentHighlightedLayer.options;
-                            this.currentHighlightedLayer.setStyle({
-                                fillColor: originalOptions.originalFillColor, // Restaurar cor de preenchimento original
-                                color: originalOptions.originalColor,         // Restaurar cor da borda original
-                                fillOpacity: originalOptions.originalFillOpacity, // Restaurar opacidade original
-                                weight: originalOptions.originalStrokeWidth  // Restaurar largura da borda original
-                            });
+                            this.map.removeLayer(this.currentHighlightedLayer);
                             this.currentHighlightedLayer = null; // Limpa a referência
                         }
                     }, 5000);
@@ -312,7 +293,6 @@ export class GeoJSONController {
             });
         });
     }
-    
     
     
     

@@ -68,12 +68,7 @@ export class MapController {
           center: this.initialCenter,
           zoom: this.initialZoom,
           layers: [
-            this.cartoDB_DarkMatter,
-            this.satellite,
-            this.stamenWatercolor,
-            this.esriWorldImagery,
-            this.cartoDB_DarkMatter,
-            this.cartoDB_Positron,
+            
             
             this.osm,
           ],

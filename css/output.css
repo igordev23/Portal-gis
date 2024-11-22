@@ -238,6 +238,68 @@
 2. Allow adding a border to an element by just adding a border-width. (https://github.com/tailwindcss/tailwindcss/pull/116)
 */
 /* Contêiner da tabela e botão */
+
+.custom-tooltip {
+  color: black; /* Cor do texto */
+  font-size: 12px; /* Tamanho da fonte */
+  font-weight: bold; /* Texto em negrito */
+  text-shadow: 1px 1px 2px white; /* Sombra sutil para destacar o texto */
+  background: white; /* Sem fundo */
+  border: none; /* Sem borda */
+  padding: 0; /* Sem preenchimento */
+}
+
+#elevation-modal {
+  display: none; /* Esconde o modal por padrão */
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 80%;
+  max-width: 600px;
+  background-color: #ffffff;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  border-radius: 10px;
+  z-index: 1000;
+  padding: 20px;
+}
+
+#elevation-modal h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.5em;
+}
+
+#elevation-modal #elevation-chart {
+  width: 100%;
+  height: 300px;
+}
+
+#elevation-modal #distancia-final {
+  margin-top: 15px;
+  font-size: 1.2em;
+  text-align: center;
+  color: #333;
+}
+
+#elevation-modal .close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  color: #aaa;
+}
+
+#elevation-modal .close-btn:hover {
+  color: #555;
+}
+
+
+
+
 .attributes-container {
   position: relative;
   max-height: 500px; /* Ajuste conforme necessário */
@@ -337,6 +399,7 @@
 #symbol-customization-btn { bottom: 20px; left: calc(50% - 100px); }
 #filter-layers-btn { bottom: 20px; left: calc(50% - 50px); }
 #legend-btn { bottom: 20px; left: calc(50%); }
+#home-btn { bottom: 20px; left: calc(50% + -150px); }
 #identify-btn { bottom: 20px; left: calc(50% + 50px); }
 #pan-btn { bottom: 20px; left: calc(50% + 100px); }
 #zoom-in-btn { bottom: 20px; left: calc(50% + 150px); }
@@ -345,11 +408,11 @@
 
 
   /* Posicionamento dos botões à direita */
-  #home-btn { top: 80px; left: 10px; }
+ 
   #attribute-table-btn { top: 150px; right: 10px; }
   #measure-btn { top: 200px; right: 10px; }
   #terrain-elevation-btn { top: 250px; right: 10px; }
-  #swipe-tool-btn { top: 400px; right: 10px; }
+  #swipe-tool-btn { top: 400px; right: 10px; display: none;}
   #filter-features-btn { top: 350px; right: 10px; }
   #print-btn { top: 300px; right: 10px; }
   #stat-analysis-btn { top: 350px; right: 10px; }
@@ -420,6 +483,8 @@
 #legend-content div:hover {
     background-color: rgba(0, 0, 0, 0.05); /* Fundo claro ao passar o mouse */
 }
+
+
 
 
 
@@ -825,6 +890,13 @@ html, body {
   padding: 10px;
   cursor: pointer;
 }
+select[name="651-layer-picker"] {
+  background-color: #f00808; /* Cor de fundo */
+  color: #333;               /* Cor do texto */
+  font-size: 16px;           /* Tamanho da fonte */
+  padding: 10px;             /* Espaçamento interno */
+}
+
 
 .provider-option:hover {
   background-color: #f0f0f0;
@@ -2340,33 +2412,6 @@ body {
 
 
 
-/* Estilo geral para o ícone do marcador */
-.leaflet-marker-icon {
-  background-color: #00b0fc; /* Cor de fundo azul */
-  border-radius: 50%; /* Faz o ícone ser um círculo */
-  border: 2px solid white; /* Borda branca ao redor do círculo */
-  width: 24px; /* Largura reduzida do ícone */
-  height: 24px; /* Altura reduzida do ícone */
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Sombra para profundidade */
-  display: flex; /* Flex para centralizar o conteúdo */
-  justify-content: center; /* Centraliza horizontalmente */
-  align-items: center; /* Centraliza verticalmente */
-  transition: transform 0.2s ease; /* Transição suave para transformações */
-}
-
-/* Efeito ao passar o mouse */
-.leaflet-marker-icon:hover {
-  transform: scale(1.1); /* Aumenta o tamanho ao passar o mouse */
-}
-
-/* Estilo para o ícone dentro do marcador (se você tiver um ícone) */
-.leaflet-marker-icon::before {
-  content: ''; /* Se quiser adicionar um ícone, utilize um conteúdo apropriado */
-  width: 12px; /* Tamanho do ícone interno */
-  height: 12px;
-  background-color: black; /* Cor do ícone interno para preto */
-  border-radius: 50%; /* Faz o ícone interno ser um círculo */
-}
 
 
 
@@ -3117,15 +3162,4 @@ video {
   .lg\:flex-row {
     flex-direction: row;
   }
-}
-
-
-.custom-tooltip {
-  color: black; /* Cor do texto */
-  font-size: 12px; /* Tamanho da fonte */
-  font-weight: bold; /* Texto em negrito */
-  text-shadow: 1px 1px 2px white; /* Sombra sutil para destacar o texto */
-  background: white; /* Sem fundo */
-  border: none; /* Sem borda */
-  padding: 0; /* Sem preenchimento */
 }

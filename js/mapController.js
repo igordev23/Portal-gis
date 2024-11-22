@@ -332,7 +332,7 @@ export class MapController {
 
     generatePDF() {
         // Oculta elementos que não devem aparecer na captura de tela
-        const elementsToHide = document.querySelectorAll('.leaflet-control-zoom, .header, #control-buttons, #sidebar, .interface-elements, .map-button, .esconde, .leaflet-control-attribution');
+        const elementsToHide = document.querySelectorAll('.leaflet-control-zoom, .header, #control-buttons, #sidebar, .interface-elements, .map-button, .esconde, .leaflet-control-attribution, .leaflet-control-sm-button');
         elementsToHide.forEach(el => el.style.display = 'none');
     
         // Configura o estilo do #scale-display para que fique no canto inferior direito do mapa
@@ -379,8 +379,9 @@ export class MapController {
     
         // Cria o texto do título entre as imagens
         const titleText = document.createElement('span');
-        titleText.textContent = 'ITINGA - MA';
-        titleText.style.margin = '0 5px';
+        titleText.innerHTML = 'Prefeitura do Município de Itinga<br>Sistema de Geoprocessamento';
+        titleText.style.margin = '0 100px';
+        titleText.style.width = '500px';
     
         // Cria a imagem para o final do título
         const endImage = document.createElement('img');

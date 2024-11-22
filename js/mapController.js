@@ -5,94 +5,140 @@ import { SwipeController } from './SwipeController.js';
 import ElevationService from './ElevationService.js';
 
 export class MapController {
-    constructor(mapElementId) { 
-
-
-        this.initialCenter = [-4.45800, -47.52531];
+    constructor(mapElementId) {
+        this.initialCenter = [-4.458, -47.52531];
         this.initialZoom = 14;
         this.pontos = [];
         this.polyline = null;
         this.elevationService = new ElevationService();
         this.chartInstance = null; // Propriedade para armazenar o gráfico
-
         // Inicializando o mapa e a camada base OSM
-        this.osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors'
-        });
-
-        this.map = L.map(mapElementId, { center: this.initialCenter, zoom: this.initialZoom, layers: [this.osm] });
-        this.currentBaseLayer = this.osm;
-
-        // Definindo outras camadas base
-        this.satellite = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenTopoMap contributors'
-        });
-
-        this.cartoDB_Positron = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://carto.com/">CartoDB</a> contributors'
-        });
-
-        this.stamenWatercolor = L.tileLayer('https://stamen-tiles.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.jpg', {
-            attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.'
-        });
-
-        this.esriWorldImagery = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-            attribution: '© Esri, USGS, NOAA'
-        });
-
-        this.cartoDB_DarkMatter = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; <a href="https://carto.com/">CartoDB</a> contributors'
-        });
-
-        document.getElementById("terrain-elevation-btn").addEventListener("click", () => this.marcarPontos());
+        this.osm = L.tileLayer(
+          "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+          {
+            attribution: "© OpenStreetMap contributors",
+            name: "osm",
+          }
+        );
     
-
+        // Definindo outras camadas base
+        this.satellite = L.tileLayer(
+          "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+          {
+            attribution: "© OpenTopoMap contributors",
+            name: "satellite",
+          }
+        );
+    
+        this.cartoDB_Positron = L.tileLayer(
+          "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+          {
+            attribution:
+              '&copy; <a href="https://carto.com/">CartoDB</a> contributors',
+            name: "cartoDB_Positron",
+          }
+        );
+    
+        this.stamenWatercolor = L.tileLayer(
+          "https://stamen-tiles.a.ssl.fastly.net/watercolor/{z}/{x}/{y}.jpg",
+          {
+            attribution:
+              'Map tiles by <a href="http://stamen.com">Stamen Design</a>, under <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a>. Data by <a href="http://openstreetmap.org">OpenStreetMap</a>, under ODbL.',
+            name: "cartoDB_Positron",
+          }
+        );
+        this.esriWorldImagery = L.tileLayer(
+          "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+          {
+            attribution: "© Esri, USGS, NOAA",
+            name: "esriWorldImagery",
+          }
+        );
+    
+        this.cartoDB_DarkMatter = L.tileLayer(
+          "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+          {
+            attribution:
+              '&copy; <a href="https://carto.com/">CartoDB</a> contributors',
+            name: "cartoDB_DarkMatter",
+          }
+        );
+    
+        this.map = L.map(mapElementId, {
+          center: this.initialCenter,
+          zoom: this.initialZoom,
+          layers: [
+            this.cartoDB_DarkMatter,
+            this.satellite,
+            this.stamenWatercolor,
+            this.esriWorldImagery,
+            this.cartoDB_DarkMatter,
+            this.cartoDB_Positron,
+            
+            this.osm,
+          ],
+        });
+        this.currentBaseLayer = this.osm;
+    
+        document
+          .getElementById("terrain-elevation-btn")
+          .addEventListener("click", () => this.marcarPontos());
+    
         // Adicionando os controladores
         this.measurementController = new MeasurementController(this.map);
-
-       
-    // Adicionando a imagem overlay
-    const imageBounds = [[-4.474798665, -47.552014662], [-4.433812159, -47.506472635]];
-
-    // Link direto da imagem no Google Drive
-    const imageUrl = '../ORTOFOTO.png';
     
-    this.staticImageLayer = L.imageOverlay(imageUrl, imageBounds, {
-        opacity: 0.8,
-        attribution: '© Raster Image'
-    });
-
-
-
-        this.geoJSONController = new GeoJSONController(this.map, this.staticImageLayer);
+        // Adicionando a imagem overlay
+        const imageBounds = [
+          [-4.474798665, -47.552014662],
+          [-4.433812159, -47.506472635],
+        ];
+    
+        // Link direto da imagem no Google Drive
+        const imageUrl = "../ORTOFOTO.png";
+    
+        this.staticImageLayer = L.imageOverlay(imageUrl, imageBounds, {
+          opacity: 0.8,
+          attribution: "© Raster Image",
+        });
+    
+        this.geoJSONController = new GeoJSONController(
+          this.map,
+          this.staticImageLayer
+        );
         this.geoJSONController.setupCheckboxListeners();
         this.geoJSONController.updateLayers();
-
+    
         this.features = [];
-        
+    
         this.setupMouseCoordinates();
-
+    
         this.dataFetcher = new DataFetcher(this.map, this.geoJSONController);
         this.dataFetcher.buscarDados();
-
+    
         // Configura o SwipeController para garantir camadas base no lado correto
-        this.swipeController = new SwipeController(this.map, 'divider-line', 'swipe-tool-btn', this.osm, this.satellite);
-
+        this.swipeController = new SwipeController(
+          this.map,
+          "divider-line",
+          "swipe-tool-btn",
+          this.osm,
+          this.satellite
+        );
+    
+        const sm = L.Control.swipeMode(this.osm, this.cartoDB_DarkMatter).addTo(
+          this.map
+        );
         // Configura o evento do botão de impressão
         this.setupPrintEvent();
-
+    
         this.setupSearchEvent();
-
-
+    
         // Configura o evento de atualização de escala ao mudar o zoom
-        this.map.on('zoomend', () => this.updateScale());
-
+        this.map.on("zoomend", () => this.updateScale());
+    
         // Exibe a escala inicial
         this.updateScale();
-
-        
-
-    }
+      }
+    
 
     abrirModal(dataElevacao) {
         const modal = document.getElementById("elevation-modal");

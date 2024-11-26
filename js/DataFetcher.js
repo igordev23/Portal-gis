@@ -11,7 +11,7 @@ export class DataFetcher {
     // Função para buscar dados e passar para o GeoJSONController
     async buscarDados() {
         try {
-            const resposta = await fetch('https://portal-gis-back2.onrender.com/api/dados');
+            const resposta = await fetch('https://eybimsa4ff.us-east-2.awsapprunner.com/api/dados');
             const dados = await resposta.json();
 
             // Atualizar o GeoJSONController com os novos dados

@@ -69,7 +69,7 @@ export class MapController {
           zoom: this.initialZoom,
           layers: [
             
-            
+            this.esriWorldImagery,
             this.osm,
           ],
         });

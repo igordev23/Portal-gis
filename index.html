@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <!-- Tailwind CSS -->
-  <link href="css/output.css" rel="stylesheet">
+  <link href="./css/output.css" rel="stylesheet">
   
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
@@ -98,6 +98,7 @@
     <div id="createTitle"></div>
  
     <div id="map" class="w-full h-screen rounded-lg shadow-lg overflow-hidden">
+      
       
       <header style="width: auto; z-index: 1001;" class="header">
         <img src="./assets/logo (2).png" alt="Logo" class="logo" />
@@ -205,8 +206,17 @@
     
   </div>
   
-  
-    <span id="scale-display" class="muda"></span>
+  <div id="scale-display">
+    Escala: 1:
+    <input 
+        id="scale-input" 
+        type="number" 
+        class="muda" 
+        placeholder="Digite a escala (ex: 4500)" 
+        min="500" 
+        step="1"
+    />
+</div>
 
 
 <div class="esconde" id="coordinates" style="

@@ -76,7 +76,12 @@ export class MapController {
         });
         
         this.currentBaseLayer = this.osm;
-    
+        document.getElementById('scale-input').addEventListener('change', (event) => {
+            const userScale = parseInt(event.target.value, 10);
+            if (!isNaN(userScale)) {
+                this.adjustZoomByScale(userScale);
+            }
+        });
         document
           .getElementById("terrain-elevation-btn")
           .addEventListener("click", () => this.marcarPontos());
@@ -774,13 +779,39 @@ export class MapController {
             Math.abs(curr - scale) < Math.abs(prev - scale) ? curr : prev
         );
     
-        // Atualiza a exibição da escala
-        const scaleDisplay = document.getElementById('scale-display');
-        if (scaleDisplay) {
-            scaleDisplay.textContent = `Escala: 1:${scale}`;
+        // Atualiza a exibição da escala no input
+        const scaleInput = document.getElementById('scale-input');
+        if (scaleInput) {
+            scaleInput.value = scale;
         }
     }
     
+    // Função para ajustar o zoom com base na escala inserida
+    adjustZoomByScale(userScale) {
+        const predefinedScales = [
+            500, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 125000, 250000
+        ];
+    
+        // Aproxima o valor inserido para a escala mais próxima
+        const closestScale = predefinedScales.reduce((prev, curr) => 
+            Math.abs(curr - userScale) < Math.abs(prev - userScale) ? curr : prev
+        );
+    
+        // Calcula o zoom correspondente
+        const dpi = 96;
+        const metersPerInch = 0.0254;
+        const resolutionAtScale = closestScale * (metersPerInch / dpi);
+        const zoomLevel = Math.log2((2 * Math.PI * 6378137) / (256 * resolutionAtScale));
+    
+        // Ajusta o zoom no mapa
+        this.map.setZoom(Math.round(zoomLevel));
+    
+        // Atualiza o input da escala para refletir a escala mais próxima
+        const scaleInput = document.getElementById('scale-input');
+        if (scaleInput) {
+            scaleInput.value = closestScale;
+        }
+    }
     
     
     

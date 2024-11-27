@@ -7,7 +7,7 @@ import ElevationService from './ElevationService.js';
 export class MapController {
     constructor(mapElementId) {
         this.initialCenter = [-4.458, -47.52531];
-        this.initialZoom = 14;
+        this.initialZoom = 15;
         this.pontos = [];
         this.polyline = null;
         this.elevationService = new ElevationService();
@@ -65,14 +65,16 @@ export class MapController {
         );
     
         this.map = L.map(mapElementId, {
-          center: this.initialCenter,
-          zoom: this.initialZoom,
-          layers: [
-            
-            this.esriWorldImagery,
-            this.osm,
-          ],
+            center: this.initialCenter,
+            zoom: this.initialZoom,
+            minZoom: 11, // Limita o zoom mínimo
+            maxZoom: 20, // Zoom máximo permitido (opcional)
+            layers: [
+                this.esriWorldImagery,
+                this.osm,
+            ],
         });
+        
         this.currentBaseLayer = this.osm;
     
         document
@@ -741,25 +743,46 @@ export class MapController {
                 suggestionsList.style.display = 'block';
             });
     }
+    
     updateScale() {
+        // Obtém o nível de zoom e o centro atual do mapa
         const zoomLevel = this.map.getZoom();
         const latitude = this.map.getCenter().lat;
-        
-        // Constante baseada em uma escala padrão para zoom 0
-        const EARTH_CIRCUMFERENCE = 40075017; // Circunferência da Terra em metros
     
-        // Converte latitude para radianos uma única vez
-        const latitudeInRadians = latitude * Math.PI / 180;
+        // Constantes para Web Mercator
+        const EARTH_RADIUS = 6378137; // Raio da Terra em metros (SIRGAS 2000 usa GRS80)
+        const TILE_SIZE = 256; // Tamanho dos tiles padrão no Leaflet
+    
+        // Resolução no Equador (tamanho de um pixel em metros no nível de zoom atual)
+        const resolutionAtEquator = (2 * Math.PI * EARTH_RADIUS) / (TILE_SIZE * Math.pow(2, zoomLevel));
         
-        // Calcula a escala e arredonda o resultado
-        const scale = Math.round((EARTH_CIRCUMFERENCE * Math.cos(latitudeInRadians)) / (Math.pow(2, zoomLevel) * 256));
-        
-        // Exibe a escala no elemento apropriado
+        // Ajusta a resolução com base na latitude (corrigindo a distorção da projeção)
+        const resolutionAtLatitude = resolutionAtEquator * Math.cos(latitude * Math.PI / 180);
+    
+        // Calcula a escala assumindo 96 DPI
+        const dpi = 96; // Densidade de pixels por polegada
+        const metersPerInch = 0.0254; // Conversão de polegadas para metros
+        let scale = Math.round(resolutionAtLatitude / (metersPerInch / dpi));
+    
+        // Escalas predefinidas (incluindo 1:500 e 1:1000)
+        const predefinedScales = [
+            500, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 125000, 250000
+        ];
+    
+        // Aproxima o valor calculado para a escala mais próxima
+        scale = predefinedScales.reduce((prev, curr) => 
+            Math.abs(curr - scale) < Math.abs(prev - scale) ? curr : prev
+        );
+    
+        // Atualiza a exibição da escala
         const scaleDisplay = document.getElementById('scale-display');
         if (scaleDisplay) {
             scaleDisplay.textContent = `Escala: 1:${scale}`;
         }
     }
+    
+    
+    
     
 
     setupMouseCoordinates() {

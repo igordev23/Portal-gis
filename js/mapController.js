@@ -67,7 +67,7 @@ export class MapController {
         this.map = L.map(mapElementId, {
             center: this.initialCenter,
             zoom: this.initialZoom,
-            minZoom: 11, // Limita o zoom mínimo
+            minZoom: 10, // Limita o zoom mínimo
             maxZoom: 20, // Zoom máximo permitido (opcional)
             layers: [
                 this.esriWorldImagery,
@@ -96,7 +96,7 @@ export class MapController {
         ];
     
         // Link direto da imagem no Google Drive
-        const imageUrl = "../ORTOFOTO.png";
+        const imageUrl = "../ORTOFOTO.jpeg";
     
         this.staticImageLayer = L.imageOverlay(imageUrl, imageBounds, {
           opacity: 0.8,
@@ -640,7 +640,7 @@ export class MapController {
                             style: {
                                 color: 'black', // Define a cor das bordas como preto
                                 weight: 2, // Espessura das bordas
-                                fillColor: 'white', // Cor de preenchimento
+                                fillColor: 'gray', // Cor de preenchimento
                                 fillOpacity: 1 // Transparência do preenchimento
                             },
                             onEachFeature: (feature, layer) => {
@@ -769,10 +769,11 @@ export class MapController {
         const metersPerInch = 0.0254; // Conversão de polegadas para metros
         let scale = Math.round(resolutionAtLatitude / (metersPerInch / dpi));
     
-        // Escalas predefinidas (incluindo 1:500 e 1:1000)
-        const predefinedScales = [
-            500, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 125000, 250000
-        ];
+       // Escalas predefinidas (adicionando 1:500,000)
+const predefinedScales = [
+    500, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 125000, 250000, 500000
+];
+
     
         // Aproxima o valor calculado para a escala mais próxima
         scale = predefinedScales.reduce((prev, curr) => 
@@ -788,9 +789,11 @@ export class MapController {
     
     // Função para ajustar o zoom com base na escala inserida
     adjustZoomByScale(userScale) {
-        const predefinedScales = [
-            500, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 125000, 250000
-        ];
+        // Escalas predefinidas (adicionando 1:500,000)
+         const predefinedScales = [
+    500, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 125000, 250000, 500000
+];
+
     
         // Aproxima o valor inserido para a escala mais próxima
         const closestScale = predefinedScales.reduce((prev, curr) => 

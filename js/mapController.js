@@ -89,14 +89,14 @@ export class MapController {
         // Adicionando os controladores
         this.measurementController = new MeasurementController(this.map);
     
-        // Adicionando a imagem overlay
-        const imageBounds = [
-          [-4.474798665, -47.552014662],
-          [-4.433812159, -47.506472635],
-        ];
-    
-        // Link direto da imagem no Google Drive
-        const imageUrl = "../ORTOFOTO.jpeg";
+          // Adicionando a imagem overlay
+          const imageBounds = [
+            [-4.474798665, -47.552014662],
+            [-4.433812159, -47.506472635],
+          ];
+      
+          // Link direto da imagem no Google Drive
+          const imageUrl = "../ORTOFOTO.png";
     
         this.staticImageLayer = L.imageOverlay(imageUrl, imageBounds, {
           opacity: 0.8,

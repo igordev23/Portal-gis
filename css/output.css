@@ -147,68 +147,6 @@
 
 
 
-.header {
-  background: linear-gradient(to right, #00b0fc, #3b82f6); /* Gradiente azul */
-  color: white; /* Texto branco */
-  padding: 16px; /* Espaçamento interno */
-  display: flex; /* Flexbox para layout */
-  justify-content: space-between; /* Espaçamento entre elementos */
-  align-items: center; /* Alinhamento vertical */
-  border-radius: 12px; /* Bordas arredondadas */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  position: fixed; /* Fixo na parte superior */
-  width: 40%; /* Largura de 40% da tela */
-  left: 50%; /* Centraliza horizontalmente */
-  transform: translateX(-50%); /* Ajusta para o centro */
-  top: 20px; /* Distância do topo */
-  z-index: 1000; /* Valor alto para estar acima do mapa */
-  transition: width 0.3s; /* Transição suave para largura */
-}
-
-.logo {
-  height: 40px; /* Altura da logo */
-  width: auto; /* Largura automática */
-  margin-right: 10px; /* Espaçamento à direita */
-}
-
-.title {
-  font-size: 24px; /* Tamanho da fonte do título */
-  font-weight: bold; /* Negrito */
-}
-
-.search-container {
-  position: relative; /* Para o botão de busca */
-}
-
-.search-input {
-  padding: 10px; /* Espaçamento interno */
-  border-radius: 25px; /* Bordas arredondadas */
-  background: white; /* Fundo branco */
-  color: black; /* Texto preto */
-  border: 1px solid #ccc; /* Bordas cinzas */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  transition: border-color 0.2s; /* Transição suave para a borda */
-}
-
-.search-input:focus {
-  outline: none; /* Remove a borda padrão */
-  border-color: #3b82f6; /* Borda azul ao focar */
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* Sombra ao focar */
-}
-
-.search-button {
-  background: #1e3a8a; /* Fundo azul escuro */
-  color: white; /* Texto branco */
-  padding: 10px; /* Espaçamento interno */
-  border-radius: 25px; /* Bordas arredondadas */
-  margin-left: 8px; /* Espaçamento à esquerda */
-  cursor: pointer; /* Cursor pointer */
-  transition: background 0.2s; /* Transição suave para o fundo */
-}
-
-.search-button:hover {
-  background: #00b0fc; /* Azul mais claro ao passar o mouse */
-}
 
 /* Estilos responsivos */
 @media (max-width: 768px) {
@@ -409,13 +347,13 @@
 
   /* Posicionamento dos botões à direita */
  
-  #attribute-table-btn { top: 150px; right: 10px; }
-  #measure-btn { top: 200px; right: 10px; }
-  #terrain-elevation-btn { top: 250px; right: 10px; }
+ 
+  #measure-btn { top: 400px; right: 10px; }
+  #terrain-elevation-btn { top: 450px; right: 10px; }
   #swipe-tool-btn { top: 400px; right: 10px; display: none;}
   #filter-features-btn { top: 350px; right: 10px; }
-  #print-btn { top: 300px; right: 10px; }
-  #stat-analysis-btn { top: 350px; right: 10px; }
+  #print-btn { top: 500px; right: 10px; }
+  #stat-analysis-btn { top: 550px; right: 10px; }
 
   #legend {
     position: absolute; /* Posiciona a div em relação ao seu contêiner pai */
@@ -556,71 +494,115 @@
   display: none;
 }
 
-
-
-
 .header {
-  background: linear-gradient(to right, #00b0fc, #3b82f6); /* Gradiente azul */
-  color: white; /* Texto branco */
-  padding: 16px; /* Espaçamento interno */
-  display: flex; /* Flexbox para layout */
-  justify-content: space-between; /* Espaçamento entre elementos */
-  align-items: center; /* Alinhamento vertical */
-  border-radius: 12px; /* Bordas arredondadas */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  position: fixed; /* Fixo na parte superior */
-  width: 40%; /* Largura de 40% da tela */
-  left: 50%; /* Centraliza horizontalmente */
-  transform: translateX(-50%); /* Ajusta para o centro */
-  top: 20px; /* Distância do topo */
-  z-index: 1000; /* Valor alto para estar acima do mapa */
-  transition: width 0.3s; /* Transição suave para largura */
+  background: linear-gradient(to right, #00b0fc, #3b82f6);
+  color: white;
+  padding: 6px 12px; /* Reduzido para deixar mais fino */
+  display: flex;
+  justify-content: flex-end; /* Alinha os itens à direita inicialmente */
+  align-items: center; /* Alinha verticalmente */
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  position: fixed;
+  width: 30%; /* Reduzido para uma barra mais fina */
+  top: 10px; /* Mais próximo do topo */
+  right: 10px; /* Posicionado no canto superior direito */
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.header-expanded {
+  justify-content: space-between; /* Ajusta para incluir todos os elementos */
+  padding: 16px; /* Aumenta o espaço interno */
+  width: 50%; /* Expande a largura quando necessário */
 }
 
 .logo {
-  height: 40px; /* Altura da logo */
-  width: auto; /* Largura automática */
-  margin-right: 10px; /* Espaçamento à direita */
+  height: 30px; /* Menor altura para manter o header fino */
+  width: auto;
+  margin-right: 12px; /* Espaçamento reduzido */
+  display: none; /* Esconde inicialmente */
 }
 
 .title {
-  font-size: 24px; /* Tamanho da fonte do título */
-  font-weight: bold; /* Negrito */
+  font-size: 18px; /* Tamanho ajustado */
+  font-weight: bold;
+  line-height: 30px; /* Alinha verticalmente com a logo */
+  display: none; /* Esconde inicialmente */
 }
 
 .search-container {
-  position: relative; /* Para o botão de busca */
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
 .search-input {
-  padding: 10px; /* Espaçamento interno */
-  border-radius: 25px; /* Bordas arredondadas */
-  background: white; /* Fundo branco */
-  color: black; /* Texto preto */
-  border: 1px solid #ccc; /* Bordas cinzas */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra suave */
-  transition: border-color 0.2s; /* Transição suave para a borda */
-}
-
-.search-input:focus {
-  outline: none; /* Remove a borda padrão */
-  border-color: #3b82f6; /* Borda azul ao focar */
-  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5); /* Sombra ao focar */
+  padding: 6px; /* Menor espaço interno */
+  font-size: 14px; /* Tamanho ajustado */
+  border-radius: 20px;
+  background: white;
+  color: black;
+  border: 1px solid #ccc;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: border-color 0.2s;
+  display: none; /* Esconde inicialmente */
 }
 
 .search-button {
-  background: #1e3a8a; /* Fundo azul escuro */
-  color: white; /* Texto branco */
-  padding: 10px; /* Espaçamento interno */
-  border-radius: 25px; /* Bordas arredondadas */
-  margin-left: 8px; /* Espaçamento à esquerda */
-  cursor: pointer; /* Cursor pointer */
-  transition: background 0.2s; /* Transição suave para o fundo */
+  background: #1e3a8a;
+  color: white;
+  padding: 6px 12px; /* Reduzido para manter proporção */
+  font-size: 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
 .search-button:hover {
-  background: #00b0fc; /* Azul mais claro ao passar o mouse */
+  background: #00b0fc;
 }
+
+.header-expanded .logo,
+.header-expanded .title,
+.header-expanded .search-input {
+  display: inline-block; /* Exibe ao expandir */
+}
+.suggestions-list {
+  position: absolute; /* Para aparecer abaixo do input */
+  top: 100%; /* Alinha logo abaixo do campo de busca */
+  left: 0;
+  width: 100%; /* Ajusta a largura à do input */
+  margin: 4px 0 0; /* Espaçamento acima */
+  padding: 0;
+  list-style: none; /* Remove marcadores de lista */
+  background: white; /* Fundo branco para contraste */
+  color: black; /* Texto preto */
+  border-radius: 12px; /* Bordas arredondadas */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Sombra suave */
+  overflow-y: auto; /* Habilita rolagem vertical */
+  max-height: 50vh; /* Limita a altura a 50% da altura da tela */
+  z-index: 1001; /* Acima de outros elementos */
+  display: none; /* Escondido inicialmente */
+}
+
+.suggestions-list li {
+  padding: 8px 12px; /* Espaçamento interno dos itens */
+  font-size: 14px; /* Ajusta o tamanho do texto */
+  cursor: pointer; /* Indica que os itens são clicáveis */
+  transition: background 0.2s; /* Transição suave para hover */
+}
+
+.suggestions-list li:hover {
+  background: #f3f4f6; /* Fundo cinza claro ao passar o mouse */
+}
+
+/* Exibe a lista apenas quando o header estiver expandido e a busca estiver ativa */
+.header-expanded .search-container.show .suggestions-list {
+  display: block;
+}
+
+
 
 /* Estilos responsivos */
 @media (max-width: 768px) {
@@ -1827,26 +1809,6 @@ video {
   }
 }
 
-.suggestions-list {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-  position: absolute; /* Para posicionar a lista */
-  background: rgb(22, 22, 22); /* Fundo da lista */
-  border: 1px solid #ccc; /* Borda da lista */
-  width: 100%; /* Para ocupar toda a largura do input */
-  z-index: 1000; /* Para garantir que a lista fique acima dos outros elementos */
-  display: none; /* Oculta inicialmente */
-}
-
-.suggestions-list li {
-  padding: 10px;
-  cursor: pointer; /* Mostrar que o item é clicável */
-}
-
-.suggestions-list li:hover {
-  background: #f0f0f0; /* Destacar item ao passar o mouse */
-}
 
 
 #measurement-box {

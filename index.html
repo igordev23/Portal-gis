@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -105,7 +105,7 @@
         <h1 class="title"><b style="color: black;">Geometria</b> <b style="color: red;">|</b> GIS Itinga-MA        </h1><p style="color:#00b0fc;">  "  " </p>
         
         <div class="search-container">
-            <input type="text" id="search-input" placeholder="Search" class="search-input" />
+            <input type="text" id="search-input" placeholder="Buscar" class="search-input" />
             <button id="search-button" class="search-button">
                 <i class="fas fa-search"></i>
             </button>
@@ -262,7 +262,17 @@ justify-content: space-between;">
 
 
 
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const searchButton = document.querySelector(".search-button");
+    const header = document.querySelector(".header");
+
+    searchButton.addEventListener("click", () => {
+      header.classList.toggle("header-expanded");
+    });
+  });
 </script>
+
 
 
 

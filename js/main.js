@@ -92,7 +92,7 @@ const closeBtn = document.getElementById('map-provider-close-btn');
 // Seleciona os elementos do DOM
 
 const selector = document.getElementById('selector');
-const  camadasbnt = document.getElementById('camadas-close-btn')
+
 
 // Função para mostrar/ocultar o menu de camadas
 operationalLayersBtn.addEventListener('click', () => {
@@ -106,7 +106,18 @@ operationalLayersBtn.addEventListener('click', () => {
 });
 
 
+const  camadasbnt = document.getElementById('camadas-close-btn')
 
+// Função para mostrar/ocultar o menu de camadas
+camadasbnt.addEventListener('click', () => {
+  if (selector.classList.contains('hidden')) {
+    selector.classList.remove('hidden');
+    selector.classList.add('show');
+  } else {
+    selector.classList.add('hidden');
+    selector.classList.remove('show');
+  }
+});
 
 
 

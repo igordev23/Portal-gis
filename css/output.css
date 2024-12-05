@@ -513,22 +513,23 @@
 
 .header-expanded {
   justify-content: space-between; /* Ajusta para incluir todos os elementos */
-  padding: 16px; /* Aumenta o espaço interno */
+  padding: 10px; /* Aumenta o espaço interno */
   width: 50%; /* Expande a largura quando necessário */
 }
 
 .logo {
-  height: 30px; /* Menor altura para manter o header fino */
+  height: 40px; /* Menor altura para manter o header fino */
   width: auto;
   margin-right: 12px; /* Espaçamento reduzido */
   display: none; /* Esconde inicialmente */
 }
 
 .title {
-  font-size: 18px; /* Tamanho ajustado */
+  font-size: 22px; /* Tamanho ajustado */
   font-weight: bold;
   line-height: 30px; /* Alinha verticalmente com a logo */
   display: none; /* Esconde inicialmente */
+  margin-right: 7px;
 }
 
 .search-container {
@@ -540,13 +541,14 @@
 .search-input {
   padding: 6px; /* Menor espaço interno */
   font-size: 14px; /* Tamanho ajustado */
-  border-radius: 20px;
+  border-radius: 5px;
   background: white;
   color: black;
   border: 1px solid #ccc;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   transition: border-color 0.2s;
   display: none; /* Esconde inicialmente */
+  margin-right: 12px;
 }
 
 .search-button {

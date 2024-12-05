@@ -128,17 +128,12 @@ export class GeoJSONController {
     
 
     updateLayerSelection(dados) {
-        this.selectorContainer.innerHTML = `
-            <div id="camadas-header">
-                <span>Camadas</span>
-            </div>
-            <input type="checkbox" style="display: none"  id="static-image" value="static-image">
-            <label style="display: none" for="static-image">Raster</label><br>
-        `;
+        
 
         dados.forEach(tabela => {
             const checkboxId = `layer-${tabela.nome}`;
             const checkboxHtml = `
+            
                 <div class="checkbox-item">
                     <input type="checkbox" id="${checkboxId}" value="${tabela.nome}">
                     <label for="${checkboxId}">${tabela.nome}</label>
@@ -244,7 +239,6 @@ export class GeoJSONController {
             });
         });
     }
-   
     setupRowClickListener(dados) {
         let highlightTimeout;
     
@@ -293,6 +287,34 @@ export class GeoJSONController {
             });
         });
     }
+    
+    
+    // Método auxiliar para restaurar o estilo original
+    restoreOriginalStyle(layer) {
+        const originalStyle = layer.options.originalStyle;
+        if (originalStyle) {
+            layer.setStyle({
+                fillColor: originalStyle.fillColor, // Restaurar cor de preenchimento original
+                color: originalStyle.color,         // Restaurar cor da borda original
+                fillOpacity: originalStyle.fillOpacity, // Restaurar opacidade original
+                weight: originalStyle.weight       // Restaurar largura da borda original
+            });
+        }
+    }
+    
+    
+    // Método auxiliar para restaurar o estilo original
+    restoreOriginalStyle(layer) {
+        const originalOptions = layer.options;
+        layer.setStyle({
+            fillColor: originalOptions.originalFillColor, // Cor de preenchimento original
+            color: originalOptions.originalColor,         // Cor da borda original
+            fillOpacity: originalOptions.originalFillOpacity, // Opacidade original
+            weight: originalOptions.originalStrokeWidth  // Largura da borda original
+        });
+    }
+    
+    
     
     
     

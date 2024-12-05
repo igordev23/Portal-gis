@@ -102,7 +102,7 @@
       
       <header style="width: auto; z-index: 1001;" class="header">
         <img src="./assets/logo (2).png" alt="Logo" class="logo" />
-        <h1 class="title"><b style="color: black;">Geometria</b> <b style="color: red;">|</b> GIS Itinga-MA        </h1><p style="color:#00b0fc;">  "  " </p>
+        <h1 class="title"><b style="color: black;">Geometria</b> <b style="color: red;">|</b> GIS Itinga-MA        </h1>
         
         <div class="search-container">
             <input type="text" id="search-input" placeholder="Buscar" class="search-input" />
@@ -151,6 +151,10 @@
     </div>
       
    
+    
+  
+
+
   <!-- Botão ao redor do mapa -->
 <button id="base-map-btn" class="map-button"><i class="fas fa-map"></i></button>
 
@@ -172,7 +176,11 @@
 <button id="operational-layers-btn" class="map-button"><i class="fas fa-layer-group"></i></button>
 
 <div id="selector" class="hidden">
-  
+  <div id="camadas-header">
+    <span>Camadas</span>
+    <button id="camadas-close-btn">✖</button>
+</div>
+
 </div>
 
 
@@ -267,11 +275,18 @@ justify-content: space-between;">
     const searchButton = document.querySelector(".search-button");
     const header = document.querySelector(".header");
 
+    // Expande/Encolhe o header ao clicar no botão
     searchButton.addEventListener("click", () => {
       header.classList.toggle("header-expanded");
     });
+
+    // Encolhe o header quando o mouse sai
+    header.addEventListener("mouseleave", () => {
+      header.classList.remove("header-expanded");
+    });
   });
 </script>
+
 
 
 

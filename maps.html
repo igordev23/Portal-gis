@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ícone com Detalhes Inline</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex items-center justify-center h-screen bg-gray-100">
+  <div class="w-96">
+    <div class="group">
+      <!-- Ícone -->
+      <div class="flex items-center justify-start space-x-4 p-4 bg-blue-500 text-white rounded-lg shadow cursor-pointer">
+        <div class="w-12 h-12 flex items-center justify-center text-xl bg-blue-700 rounded-full">
+          ℹ️
+        </div>
+        <span class="text-lg">Informações</span>
+      </div>
+      
+      <!-- Modal Inline -->
+      <div 
+        class="mt-2 p-4 bg-white border border-gray-200 rounded-lg shadow opacity-0 group-hover:opacity-100 
+        transition-opacity duration-300">
+        <p class="text-gray-800 text-sm">
+          Detalhes adicionais: Aqui está mais informação relevante sobre o item destacado. 
+          O conteúdo é exibido inline sem sobrepor a interface.
+        </p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

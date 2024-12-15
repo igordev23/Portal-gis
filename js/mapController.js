@@ -590,92 +590,133 @@ export class MapController {
 
 
 
-
-
     loadRasterLayersLazy() {
-        const mapBounds = this.map.getBounds(); // Obtém os limites visíveis do mapa
+        const mapBounds = this.map.getBounds();
     
-        // Remove eventos redundantes para evitar sobrecarga
-        this.map.off('moveend', this.updateVisibleRasterLayers);
+        // Inicializa o cache para rastrear o status das camadas
+        this.activeRasterLayers = this.activeRasterLayers || new Set();
     
-        // Adiciona apenas imagens dentro da área visível
-        this.updateVisibleRasterLayers = () => {
-            this.rasterLayers.forEach((layer, index) => {
+        // Função para atualizar as camadas raster com otimização
+        const updateRasterLayers = () => {
+            const updatedBounds = this.map.getBounds();
+    
+            this.rasterLayers.forEach((layer) => {
                 const layerBounds = layer.getBounds();
-                const isVisible = mapBounds.intersects(layerBounds);
     
-                if (isVisible && !this.map.hasLayer(layer)) {
-                    setTimeout(() => layer.addTo(this.map), index * 150); // Adiciona com atraso
-                } else if (!isVisible && this.map.hasLayer(layer)) {
-                    this.map.removeLayer(layer); // Remove camadas fora da área visível
+                if (updatedBounds.intersects(layerBounds)) {
+                    // Adiciona a camada se estiver nos limites e ainda não estiver ativa
+                    if (!this.map.hasLayer(layer)) {
+                        layer.addTo(this.map);
+                        this.activeRasterLayers.add(layer);
+                    }
+                } else {
+                    // Remove a camada se estiver fora dos limites visíveis
+                    if (this.map.hasLayer(layer)) {
+                        this.map.removeLayer(layer);
+                        this.activeRasterLayers.delete(layer);
+                    }
                 }
             });
         };
     
-        // Atualiza camadas visíveis apenas após o movimento ou zoom
-        this.map.on('moveend', this.updateVisibleRasterLayers);
-        this.updateVisibleRasterLayers();
-    }
-    
-
-
-    switchBaseLayer(provider, side = 'left') {
-        let newLayer;
-    
-        switch (provider) {
-            case 'osm':
-                newLayer = this.osm;
-                break;
-            case 'satellite':
-                newLayer = this.satellite;
-                break;
-            case 'cartodb':
-                newLayer = this.cartoDB_Positron;
-                break;
-            case 'stamen-watercolor':
-                newLayer = this.stamenWatercolor;
-                break;
-            case 'esri-world-imagery':
-                newLayer = this.esriWorldImagery;
-                break;
-            case 'cartodb-dark-matter':
-                newLayer = this.cartoDB_DarkMatter;
-                break;
-            case 'raster':
-                this.loadRasterLayersLazy();
-                return; // Termina aqui para raster
-            default:
-                newLayer = this.osm;
-        }
-    
-        // Remove a camada base atual
-        if (this.currentBaseLayer && this.map.hasLayer(this.currentBaseLayer)) {
-            this.map.removeLayer(this.currentBaseLayer);
-        }
-    
-        // Remove camadas raster, caso estejam visíveis
-        this.rasterLayers.forEach((layer) => {
-            if (this.map.hasLayer(layer)) {
-                this.map.removeLayer(layer);
+        // Carrega camadas raster iniciais com atraso escalonado
+        this.rasterLayers.forEach((layer, index) => {
+            const layerBounds = layer.getBounds();
+            if (mapBounds.intersects(layerBounds) && !this.activeRasterLayers.has(layer)) {
+                setTimeout(() => {
+                    if (!this.map.hasLayer(layer)) {
+                        layer.addTo(this.map);
+                        this.activeRasterLayers.add(layer);
+                    }
+                }, Math.min(index * 200, 1000)); // Reduz ainda mais o atraso escalonado para tempo de resposta mais rápido
             }
         });
     
-        this.currentBaseLayer = newLayer;
+        // Configura o evento `moveend` e `zoomend` com debounce para evitar processamento excessivo
+        if (!this._rasterEventListenerActive) {
+            this._rasterEventListenerActive = true;
     
-        if (provider !== 'raster') {
-            this.map.addLayer(newLayer);
-        }
+            const debounce = (fn, delay) => {
+                let timeout;
+                return (...args) => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => fn(...args), delay);
+                };
+            };
     
-        // Atualiza o controlador de swipe se necessário
-        if (this.swipeController.isSwipeActive) {
-            if (side === 'left') {
-                this.swipeController.leftMapLayer = newLayer;
-            } else {
-                this.swipeController.rightMapLayer = newLayer;
-            }
-            this.swipeController.setMapLayers();
+            // Detecta dispositivos móveis para ajustar a responsividade
+            const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+            const debounceDelay = isMobile ? 100 : 50; // Reduz o atraso para eventos de zoom
+    
+            this.map.on('moveend', debounce(updateRasterLayers, debounceDelay));
+            this.map.on('zoomend', debounce(updateRasterLayers, debounceDelay)); // Adiciona suporte a eventos de zoom
         }
     }
+    
+    
+switchBaseLayer(provider, side = 'left') {
+    let newLayer;
+
+    switch (provider) {
+        case 'osm':
+            newLayer = this.osm;
+            break;
+        case 'satellite':
+            newLayer = this.satellite;
+            break;
+        case 'cartodb':
+            newLayer = this.cartoDB_Positron;
+            break;
+        case 'stamen-watercolor':
+            newLayer = this.stamenWatercolor;
+            break;
+        case 'esri-world-imagery':
+            newLayer = this.esriWorldImagery;
+            break;
+        case 'cartodb-dark-matter':
+            newLayer = this.cartoDB_DarkMatter;
+            break;
+        case 'raster':
+            this.loadRasterLayersLazy();
+            return; // Termina aqui para raster
+        default:
+            newLayer = this.osm;
+    }
+
+    // Remove a camada base atual
+    if (this.currentBaseLayer && this.map.hasLayer(this.currentBaseLayer)) {
+        this.map.removeLayer(this.currentBaseLayer);
+    }
+
+    // Remove camadas raster, caso estejam visíveis
+    this.rasterLayers.forEach((layer) => {
+        if (this.map.hasLayer(layer)) {
+            this.map.removeLayer(layer);
+        }
+    });
+
+    // Remove o evento `moveend` ao sair das camadas raster
+    if (provider !== 'raster') {
+        this.map.off('moveend');
+    }
+
+    this.currentBaseLayer = newLayer;
+
+    if (provider !== 'raster') {
+        this.map.addLayer(newLayer);
+    }
+
+    // Atualiza o controlador de swipe se necessário
+    if (this.swipeController.isSwipeActive) {
+        if (side === 'left') {
+            this.swipeController.leftMapLayer = newLayer;
+        } else {
+            this.swipeController.rightMapLayer = newLayer;
+        }
+        this.swipeController.setMapLayers();
+    }
+}
+
     
     
     

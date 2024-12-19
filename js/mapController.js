@@ -351,24 +351,25 @@ export class MapController {
     
         // Cria a imagem para o início do título
         const startImage = document.createElement('img');
-        startImage.src = 'https://digitaliza-institucional.s3.us-east-2.amazonaws.com/prefeitura-municipal-de-itinga/site/Bras%C3%A3o.png';
+        startImage.src = '../assets/logo.png';
         startImage.alt = 'Imagem Início';
-        startImage.style.width = '54px';
-        startImage.style.height = '54px';
-        startImage.style.marginRight = '5px';
+        startImage.style.width = '104px';
+        startImage.style.height = '74px';
+       
     
         // Cria o texto do título entre as imagens
         const titleText = document.createElement('span');
-        titleText.innerHTML = 'Prefeitura do Município de Itinga<br>Sistema de Geoprocessamento';
-        titleText.style.margin = '0 100px';
-        titleText.style.width = '500px';
+        titleText.innerHTML = 'Prefeitura do Município de Itinga-MA<br>Sistema de Geoprocessamento';
+        
+        titleText.style.width = '400px';
+        titleText.style.marginLeft = '6px';
     
         // Cria a imagem para o final do título
         const endImage = document.createElement('img');
-        endImage.src = 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Bandeira_do_Munic%C3%ADpio_de_Itinga.jpg';
+        endImage.src = '../assets/BANDEIRA.jpg';
         endImage.alt = 'Imagem Fim';
         endImage.style.width = '64px';
-        endImage.style.height = '35px';
+        endImage.style.height = '45px';
         endImage.style.marginLeft = '5px';
     
         // Adiciona as imagens e o texto ao título

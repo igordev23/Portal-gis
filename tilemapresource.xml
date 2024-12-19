@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
     <TileMap version="1.0.0" tilemapservice="http://tms.osgeo.org/1.0.0">
-      <Title>ORTOFOTO_GEO.tif</Title>
+      <Title>ORTOFOTO_TIF.tiff</Title>
       <Abstract></Abstract>
       <SRS>EPSG:3857</SRS>
-      <BoundingBox minx="-47.55201466200000" miny="-4.47479774423050" maxx="-47.50647353427944" maxy="-4.43381215900000"/>
-      <Origin x="-47.55201466200000" y="-4.47479774423050"/>
+      <BoundingBox minx="-47.55201352472073" miny="-4.47479872688080" maxx="-47.50647388120325" maxy="-4.43381215936080"/>
+      <Origin x="-47.55201352472073" y="-4.47479872688080"/>
       <TileFormat width="256" height="256" mime-type="image/png" extension="png"/>
       <TileSets profile="mercator">
-         <TileSet href="10" units-per-pixel="152.87405654296876" order="10"/>
+        <TileSet href="10" units-per-pixel="152.87405654296876" order="10"/>
         <TileSet href="11" units-per-pixel="76.43702827148438" order="11"/>
         <TileSet href="12" units-per-pixel="38.21851413574219" order="12"/>
         <TileSet href="13" units-per-pixel="19.10925706787109" order="13"/>

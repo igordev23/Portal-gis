@@ -103,7 +103,7 @@ export class MapController {
             this.satellite
         );
     
-        L.Control.swipeMode(this.osm, this.cartoDB_DarkMatter).addTo(this.map);
+        L.Control.swipeMode(this.map, this.cartoDB_DarkMatter).addTo(this.map);
     
         // Configurações adicionais de eventos
         this.setupPrintEvent();
@@ -351,10 +351,10 @@ export class MapController {
     
         // Cria a imagem para o início do título
         const startImage = document.createElement('img');
-        startImage.src = 'https://www.itinga.ma.gov.br/imagens/logo.png?v=2.0';
+        startImage.src = 'https://digitaliza-institucional.s3.us-east-2.amazonaws.com/prefeitura-municipal-de-itinga/site/Bras%C3%A3o.png';
         startImage.alt = 'Imagem Início';
-        startImage.style.width = '24px';
-        startImage.style.height = '24px';
+        startImage.style.width = '54px';
+        startImage.style.height = '54px';
         startImage.style.marginRight = '5px';
     
         // Cria o texto do título entre as imagens
@@ -365,9 +365,9 @@ export class MapController {
     
         // Cria a imagem para o final do título
         const endImage = document.createElement('img');
-        endImage.src = 'https://upload.wikimedia.org/wikipedia/commons/6/6d/Bandeira_Itinga_do_Maranh%C3%A3o%2C_MA.jpg?20161226183048';
+        endImage.src = 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Bandeira_do_Munic%C3%ADpio_de_Itinga.jpg';
         endImage.alt = 'Imagem Fim';
-        endImage.style.width = '24px';
+        endImage.style.width = '64px';
         endImage.style.height = '35px';
         endImage.style.marginLeft = '5px';
     
